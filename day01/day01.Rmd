@@ -1,0 +1,308 @@
+---
+title: "ASCI 431/831 Advanced Animal Breeding"
+output: 
+  learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+# Introduction to R 
+This is an interacitive tutorial for [R](https://www.r-project.org/) based on the [learnr](https://cran.rstudio.com/web/packages/learnr/index.html) package. 
+ 
+## Working directory
+The function `getwd` returns your current working directory. This function has no argument. 
+
+### Exercise 
+
+Write the R code and find out your current directory. 
+
+```{r ex1a, exercise=TRUE}
+
+```
+
+<div id="ex1a-hint">
+**Hint:** Type `getwd()` and then click the blue button.
+</div>
+
+
+
+
+
+You can change the working directory by using `setwd` and specify the path to the desired directory. Make sure to put the directory name in double quotation marks `" "`.
+
+### Exercise
+
+Write the R code and set the working directory to your desired directory. Confirm that your working directory is set to your desired directory. 
+
+```{r ex1b, exercise=TRUE}
+
+```
+
+```{r ex1b-solution}
+setwd("~/Dropbox/chikudaisei/teaching/2018/ASCI431-831/day01/")
+getwd()
+```
+
+Note that it is likely that your path may differ from the path shown in the solution.
+
+
+
+
+
+## File input
+
+The function `read.table` reads a file in a data frame format. 
+
+The R code below creates a one line of file. The read.table function has many arguments but we will use only three in this exercise. The code then reads the file by using the `read.table` function and store the content in the variable `tmp`. 
+
+```{r ex2a, exercise=TRUE}
+cat("ID Pheno \n 1 3.7 \n 2 1.9 \n", file="tmp.txt", sep=" ")
+tmp <- read.table(file = "tmp.txt", header = TRUE, stringsAsFactors = FALSE)
+head(tmp)
+```
+
+The `head` function returns the first six rows of a data frame. The number of rows returned can be varied by controlling the argument `n`.
+
+### Exercise
+
+The function `read.table` can also read a file directly from WWW. Write the R code that read the [simulated phenotype file](https://raw.githubusercontent.com/morota/asci431-2017/gh-pages/hw05/pheno.txt) and show the first 10 rows of the data. 
+```{r ex2b, exercise=TRUE}
+
+```
+
+
+```{r ex2b-solution}
+tmp <- read.table(file="https://raw.githubusercontent.com/morota/asci431-2017/gh-pages/hw05/pheno.txt", header = TRUE, stringsAsFactors = FALSE)
+head(tmp, n=10)
+```
+
+Note that consider using the [readr](https://cran.r-project.org/web/packages/readr/index.html) or [data.table](https://cran.r-project.org/web/packages/data.table/index.html) to efficiently read large text files.
+
+
+
+
+
+
+## Data structure 
+
+Base R has a divsere data types. We will discuss 1) atomic vector, 2) list, 3) matrix, and 4) data frame in this exercize. 
+
+### Atomic vector
+
+Commonly ued atomic vectors include integer, double (numeric), character, and logical. 
+
+#### Integer 
+```{r ex3a, exercise=TRUE}
+x1 <- c(1L, 3L, 5L, 7L)
+x1
+class(x1)
+```
+
+
+#### Double (Numeric)
+```{r ex3b, exercise=TRUE}
+x2 <- c(1.5, 3.5, 5.5, 7.5)
+x2
+class(x2)
+```
+
+
+#### Character 
+```{r ex3c, exercise=TRUE}
+x3 <- c("Welcome", "to", "ASCI431-831", "Advanced Animal Breeding", "!")
+x3
+class(x3)
+```
+
+#### Logical 
+```{r ex3d, exercise=TRUE}
+x4 <- c(TRUE, FALSE)
+x4
+class(x4)
+```
+
+#### Vector index
+We can access to a certain element of variable by specifying an index inside a single square bracket `[ ]` operator.
+
+```{r ex3e, exercise=TRUE}
+x3 <- c("Welcome", "to", "ASCI 431-831", "Advanced Animal Breeding", "!")
+x3[3]
+```
+
+### Exercise
+
+Create an atomic vector variable containing both integer and double. Check the class of the variable. Interpret the result. 
+
+```{r ex3f, exercise=TRUE}
+
+```
+
+```{r ex3f-solution}
+x <- c(10L, 20.1)
+class(x)
+```
+
+### Exercise
+
+Create an atomic vector variable containing integer, double, and character. Check the class of the variable. Interpret the result. 
+
+```{r ex3g, exercise=TRUE}
+
+```
+
+```{r ex3g-solution}
+x <- c(10L, 20.1, "ASCI431-831")
+class(x)
+```
+
+### List
+
+The advantage of list is that it can contain any data types. Use the double square bracket  `[[ ]]` operator to access a list member. 
+```{r ex3h, exercise=TRUE}
+x5 <-list(10L, 20.1, "ASCI431-831")
+x5
+class(x5)
+x5[[2]]
+```
+
+
+### Exercise
+
+```{r ex3i}
+question("What is the class of variable x5 <- list(c(1L, 5L), c(1.5, 5.5), c(\"ASCI 431-831\"), c(TRUE, FALSE))?",
+    answer("logical"),
+    answer("numeric"),
+    answer("list", correct = TRUE),
+    answer("character"),
+     answer("integer"),
+    allow_retry = TRUE
+)
+```
+
+
+### Matrix
+
+A matrix is a multi-dimensional vector or array. The function `matrix` creates a matrix variable. The `dim` function returns the dimension of matrix. 
+
+```{r ex3j, exercise=TRUE}
+x6 <- matrix(c(1, 2, 3, 4), ncol=2, nrow=2)
+x6
+dim(x6)
+class(x6)
+x6[,1]
+```
+
+
+### Exercise
+```{r ex3k}
+question("What is the correct R syntax to access the 2nd row and 1st column of matrix?",
+    answer("x6[1,1]"),
+    answer("x6[1,2]"),
+    answer("x6[2,1]", correct = TRUE),
+    answer("x6[2,2]"),
+    allow_retry = TRUE
+)
+```
+
+Because a matrix is simply a multi-dimensional vector, it can not contain both integer/numeric and chracter. 
+
+### Data frame
+
+A data frame can be viewed as a mult-dimensional list of equal length vectors. This makes a data frame to include various data types in a single variable. 
+
+```{r ex3l, exercise=TRUE}
+x7 <- data.frame(int=c(1, 2, 3, 4), chr=c("A", "B", "C", "D"), stringsAsFactors = FALSE)
+x7
+```
+
+
+
+
+
+
+
+
+
+
+
+
+## Statistical analysis
+
+We will learn how to compute basic statistics in R by using the `chickwts` data set. We can learn more about `chickwts` by typing `?chickwts` or `help(chickwts)`.
+
+### Exercise
+
+Open the help page for `chickwts` data set. 
+
+```{r ex4a, exercise=TRUE}
+
+```
+
+```{r ex4a-solution}
+?chickwts
+```
+
+### Data structure 
+
+This is how the chickwts data set looks like.  
+```{r ex4b, exercise=TRUE, exercise.eval = TRUE}
+chickwts
+```
+
+### Mean
+The `mean` function computes the mean of a vector.
+```{r ex4c, exercise=TRUE}
+mean(chickwts[,1])
+```
+
+### Variance
+The `var` function computes the sample variance of a vector.
+```{r ex4d, exercise=TRUE}
+var(chickwts[,1])
+```
+
+### Table
+The `table` function computes the frequency.
+```{r ex4e, exercise=TRUE}
+table(chickwts[,2])
+```
+
+### Summary
+The `summary` function computes the summary of each column.
+```{r ex4f, exercise=TRUE}
+summary(chickwts)
+```
+
+### Subsetting
+Use the `subset` function to select a subset of data. 
+```{r ex4g, exercise=TRUE}
+subset(chickwts, feed == "soybean")
+```
+
+### Exercise
+Compute the mean of chicken weights when soybean is fed. 
+```{r ex4h, exercise=TRUE}
+
+```
+
+```{r ex4h-solution}
+mean(subset(chickwts, feed == "soybean"))
+```
+
+
+### Exercise
+Find out how many chickens weight more than 200 regardelss of feed type. 
+```{r ex4i, exercise=TRUE}
+
+```
+
+```{r ex4i-solution}
+dim(subset(chickwts, weight > 200))
+```
+
+

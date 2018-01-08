@@ -260,11 +260,34 @@ The `mean` function computes the mean of a vector.
 mean(chickwts[,1])
 ```
 
+### Exercise  
+Verfiy that $E(aX) = aE(X)$. Set $a = 10$. Here $X$ is a vector of chick weight. Use the multiplication operator `*`. 
+```{r, ex4c-1, exercise=TRUE}
+
+```
+
+```{r, ex4c-1-solution}
+mean(10 * chickwts[,1])
+10 * mean(chickwts[,1])
+```
+
 ### Variance
 The `var` function computes the sample variance of a vector.
 ```{r ex4d, exercise=TRUE}
 var(chickwts[,1])
 ```
+
+### Exercise  
+Verfiy that $Var(aX) = a^2Var(X)$. Set $a = 10$.  
+```{r, ex4d-1, exercise=TRUE}
+
+```
+
+```{r, ex4d-1-solution}
+var(10 * chickwts[,1])
+10^2 * var(chickwts[,1])
+```
+
 
 ### Table
 The `table` function computes the frequency.
@@ -285,7 +308,7 @@ subset(chickwts, feed == "soybean")
 ```
 
 ### Exercise
-Compute the mean of chicken weights when soybean is fed. 
+Compute the mean of chick weight when soybean is fed. 
 ```{r ex4h, exercise=TRUE}
 
 ```
@@ -296,7 +319,7 @@ mean(subset(chickwts, feed == "soybean"))
 
 
 ### Exercise
-Find out how many chickens weight more than 200 regardelss of feed type. 
+Find out how many chicks weight more than 200 regardelss of feed type. 
 ```{r ex4i, exercise=TRUE}
 
 ```

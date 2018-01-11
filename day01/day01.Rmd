@@ -314,7 +314,7 @@ Compute the mean of chick weight when soybean is fed.
 ```
 
 ```{r ex4h-solution}
-mean(subset(chickwts, feed == "soybean"))
+mean(subset(chickwts, feed == "soybean")[,1])
 ```
 
 
@@ -327,5 +327,48 @@ Find out how many chicks weight more than 200 regardelss of feed type.
 ```{r ex4i-solution}
 dim(subset(chickwts, weight > 200))
 ```
+
+
+### Covariance
+The `cov` function computes the covariance of two vectors. Covariance between linseed-fed chick weight and sunflower-fed chick weight is the following. 
+```{r ex4j, exercise=TRUE}
+cov(subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1]) 
+```
+
+### Exercise
+Verfiy that $Cov(aX, Y) = aCov(X, Y)$ by setting $a = 10$. Here $X$ is a vector of linseed-fed chick weight and $Y$ is a vector of sunflower-fed chick weight. 
+```{r ex4k, exercise=TRUE}
+
+```
+
+```{r ex4k-solution}
+cov(10*subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1])
+10 * cov(subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1])
+```
+
+
+
+### Exercise
+Verfiy that $Cov(aX, bY) = abCov(X, Y)$ by setting $a = 10$ and $b=5$. 
+```{r ex4l, exercise=TRUE}
+
+```
+
+```{r ex4l-solution}
+cov(10*subset(chickwts, feed == "linseed")[,1], 5*subset(chickwts, feed == "sunflower")[,1])
+10 * 5 * cov(subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1])
+```
+
+
+
+### Correlation
+The `cor` function computes the correlation of two vectors. 
+```{r ex4m, exercise=TRUE}
+cor(subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1])
+```
+
+
+
+
 
 

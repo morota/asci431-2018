@@ -58,7 +58,7 @@ Note that it is likely that your path may differ from the path shown in the solu
 
 The function `read.table` reads a file in a data frame format. 
 
-The R code below creates a one line of file. The read.table function has many arguments but we will use only three in this exercise. The code then reads the file by using the `read.table` function and store the content in the variable `tmp`. 
+The R code below creates a file which contains two rows. The read.table function has many arguments but we will use only three in this exercise. The code then reads the file by using the `read.table` function and store the content in the variable `tmp`. 
 
 ```{r ex2a, exercise=TRUE}
 cat("ID Pheno \n 1 3.7 \n 2 1.9 \n", file="tmp.txt", sep=" ")
@@ -70,7 +70,7 @@ The `head` function returns the first six rows of a data frame. The number of ro
 
 ### Exercise
 
-The function `read.table` can also read a file directly from WWW. Write the R code that read the [simulated phenotype file](https://raw.githubusercontent.com/morota/asci431-2017/gh-pages/hw05/pheno.txt) and show the first 10 rows of the data. 
+The function `read.table` can also read a file directly from WWW. Write the R code that reads the [simulated phenotype file](https://raw.githubusercontent.com/morota/asci431-2017/gh-pages/hw05/pheno.txt) and show the first 10 rows of the data. 
 ```{r ex2b, exercise=TRUE}
 
 ```
@@ -90,11 +90,11 @@ Note that consider using the [readr](https://cran.r-project.org/web/packages/rea
 
 ## Data structure 
 
-Base R has a divsere data types. We will discuss 1) atomic vector, 2) list, 3) matrix, and 4) data frame in this exercize. 
+Base R has a diverse data types. We will discuss 1) atomic vector, 2) list, 3) matrix, and 4) data frame in this exercize. 
 
 ### Atomic vector
 
-Commonly ued atomic vectors include integer, double (numeric), character, and logical. 
+Commonly used atomic vectors include integer, double (numeric), character, and logical. 
 
 #### Integer 
 ```{r ex3a, exercise=TRUE}
@@ -127,7 +127,7 @@ class(x4)
 ```
 
 #### Vector index
-We can access to a certain element of variable by specifying an index inside a single square bracket `[ ]` operator.
+We can access a certain element of a variable by specifying an index inside a single square bracket `[ ]` operator.
 
 ```{r ex3e, exercise=TRUE}
 x3 <- c("Welcome", "to", "ASCI 431-831", "Advanced Animal Breeding", "!")
@@ -162,7 +162,7 @@ class(x)
 
 ### List
 
-The advantage of list is that it can contain any data types. Use the double square bracket  `[[ ]]` operator to access a list member. 
+The advantage of lists is that it can contain any data types. Use the double square bracket  `[[ ]]` operator to access a list member. 
 ```{r ex3h, exercise=TRUE}
 x5 <-list(10L, 20.1, "ASCI431-831")
 x5
@@ -187,7 +187,7 @@ question("What is the class of variable x5 <- list(c(1L, 5L), c(1.5, 5.5), c(\"A
 
 ### Matrix
 
-A matrix is a multi-dimensional vector or array. The function `matrix` creates a matrix variable. The `dim` function returns the dimension of matrix. 
+A matrix is a multi-dimensional vector or array. The function `matrix` creates a matrix variable. The `dim` function returns the dimension of a matrix. 
 
 ```{r ex3j, exercise=TRUE}
 x6 <- matrix(c(1, 2, 3, 4), ncol=2, nrow=2)
@@ -249,7 +249,7 @@ Open the help page for `chickwts` data set.
 
 ### Data structure 
 
-This is how the chickwts data set looks like.  
+This is what the chickwts data set looks like.  
 ```{r ex4b, exercise=TRUE, exercise.eval = TRUE}
 chickwts
 ```
@@ -290,7 +290,7 @@ var(10 * chickwts[,1])
 
 
 ### Table
-The `table` function computes the frequency.
+The `table` function computes the frequency of each of the discrete values.
 ```{r ex4e, exercise=TRUE}
 table(chickwts[,2])
 ```
@@ -319,7 +319,7 @@ mean(subset(chickwts, feed == "soybean")[,1])
 
 
 ### Exercise
-Find out how many chicks weight more than 200 regardelss of feed type. 
+Find out how many chicks weight more than 200, regardless of feed type. 
 ```{r ex4i, exercise=TRUE}
 
 ```
@@ -330,7 +330,7 @@ dim(subset(chickwts, weight > 200))
 
 
 ### Covariance
-The `cov` function computes the covariance of two vectors. Covariance between linseed-fed chick weight and sunflower-fed chick weight is the following. 
+The `cov` function computes the covariance of two vectors. Covariance between linseed-fed chick weight and sunflower-fed chick weight is as follows: 
 ```{r ex4j, exercise=TRUE}
 cov(subset(chickwts, feed == "linseed")[,1], subset(chickwts, feed == "sunflower")[,1]) 
 ```

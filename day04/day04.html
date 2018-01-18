@@ -116,7 +116,7 @@ $(document).ready(function () {
 <div id="main">
 <div id="overview" class="section level2">
 <h2>Overview</h2>
-<p>We will learn how to compute allele and genotypic frequencies in R by using the cattle data set.</p>
+<p>We will learn how to compute allele and genotypic frequencies in R using the cattle data set.</p>
 </div>
 <div id="read-a-file" class="section level2">
 <h2>Read a file</h2>
@@ -127,9 +127,9 @@ $(document).ready(function () {
 <span class="kw">head</span>(W[, <span class="dv">1</span>])  <span class="co"># one-column data frame</span></code></pre></div>
 <p>The following code shows the first five rows and columns.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">W[<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>]</code></pre></div>
-<p>We then drop the first column of data frame which is the animal IDs. The <code>-</code> sign indicates dropping variables. So <code>-1</code> means dropping the first column.</p>
+<p>We then drop the first column of data frame, which is the animal IDs. The <code>-</code> sign indicates dropping variables. So, <code>-1</code> means dropping the first column.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">W &lt;-<span class="st"> </span>W[, <span class="op">-</span><span class="dv">1</span>]</code></pre></div>
-<p>Next, we will convert <code>W</code> into a matrix from a data frame. In R, matrices are more memory efficient and more convinient to do linear algebra-type of operations.</p>
+<p>Next, we will convert <code>W</code> into a matrix from a data frame. In R, matrices are more memory efficient and convenient than the other data types to do linear algebra.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">W &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(W)</code></pre></div>
 <p>What is the dimension of <code>W</code>?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(W)</code></pre></div>
@@ -147,7 +147,7 @@ f(A) = p = \frac{2 \times (\text{no. of } AA \text{ individuals}) + 1 \times (\t
 \]</span></p>
 <div id="exercise-1" class="section level3">
 <h3>Exercise 1</h3>
-<p>Use the variables <code>nAA</code>, <code>nAa</code>, and <code>naa</code> defined above and compute the allele frequency of <em>A</em> and <em>a</em> in the first SNP.</p>
+<p>Use the variables <code>nAA</code>, <code>nAa</code>, and <code>naa</code> defined above and compute the allele frequencies of <em>A</em> and <em>a</em> in the first SNP.</p>
 </div>
 </div>
 <div id="genotypic-frequency" class="section level2">
@@ -159,7 +159,7 @@ f(aa) = Q = \frac{\text{No. of } aa \text{ individuals}}{\text{Total no. individ
 \]</span></p>
 <div id="exercise-2" class="section level3">
 <h3>Exercise 2</h3>
-<p>What is the genotypic frequency of <code>AA</code>, <code>Aa</code>, and <code>aa</code> in the first SNP?</p>
+<p>What are the genotypic frequencies of <code>AA</code>, <code>Aa</code>, and <code>aa</code> in the first SNP?</p>
 </div>
 </div>
 <div id="another-approach-for-obtaining-allele-frequency" class="section level2">
@@ -169,11 +169,11 @@ f(A) = p = \frac{2 \times (\text{frequency of } AA) + 1 \times (\text{frequency 
 \]</span></p>
 <div id="exercise-3" class="section level3">
 <h3>Exercise 3</h3>
-<p>Use the variables <code>P</code>, <code>H</code>, and <code>Q</code> defined above and compute the allele frequency of <em>A</em> and <em>a</em> in the first SNP.</p>
+<p>Use the variables <code>P</code>, <code>H</code>, and <code>Q</code> defined above and compute the allele frequencies of <em>A</em> and <em>a</em> in the first SNP.</p>
 </div>
 <div id="exercise-4" class="section level3">
 <h3>Exercise 4</h3>
-<p>What is the genotypic frequency of <code>AA</code>, <code>Aa</code>, and <code>aa</code> in the second SNP?</p>
+<p>What are the genotypic frequencies of <code>AA</code>, <code>Aa</code>, and <code>aa</code> in the second SNP?</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">nAA &lt;-<span class="st"> </span><span class="kw">table</span>(W[, <span class="dv">2</span>])[<span class="dv">3</span>]
 nAa &lt;-<span class="st"> </span><span class="kw">table</span>(W[, <span class="dv">2</span>])[<span class="dv">2</span>]
 naa &lt;-<span class="st"> </span><span class="kw">table</span>(W[, <span class="dv">2</span>])[<span class="dv">1</span>]
@@ -186,7 +186,7 @@ q</code></pre></div>
 </div>
 <div id="compute-allele-frequencies-for-all-snps" class="section level2">
 <h2>Compute allele frequencies for all SNPs</h2>
-<p>So far we have learned how to compute allele frequency of one SNP using the <code>table</code> function. Here, we consider how to compute allele frequencies for the entire SNPs. Of course we can apply the <code>table</code> function manually one at a time. However, this approach takes too much time to compute allele frequencies for 6,960 SNPs. Recall that allele frequency of <em>A</em> is given by <span class="math display">\[ 
+<p>So far we have learned how to compute the allele frequency of a single SNP using the <code>table</code> function. Here, we consider how to compute allele frequencies for the entire SNPs. Of course we can apply the <code>table</code> function manually one at a time. However, this approach takes too much time to compute allele frequencies for 6,960 SNPs. Recall that allele frequency of <em>A</em> is given by <span class="math display">\[ 
 f(A) = p = \frac{2 \times (\text{no. of } AA \text{ individuals}) + 1 \times (\text{no. of } Aa \text{ individuals})}{2 \times \text{total no. of individuals}}.
 \]</span> We can rewrite this equation into <span class="math display">\[ 
 f(A) = p = \frac{(\text{no. of } A \text{ allele in the population})}{2 \times \text{total no. of individuals}}.
@@ -209,7 +209,7 @@ f(A) = p = \frac{(\text{no. of } A \text{ allele in the population})}{2 \times \
 </div>
 <div id="minor-allele-frequency" class="section level2">
 <h2>Minor allele frequency</h2>
-<p>In most cases, people report a minor allele frequency, which is the frequency of the less frequent allele in a given SNP. We can convert allele frequencies into minor allele frquencies by using the <code>ifelse</code> function.</p>
+<p>In most cases, people report a minor allele frequency, which is the frequency of less frequent allele in a given SNP. We can convert allele frequencies into minor allele frquencies by using the <code>ifelse</code> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">maf &lt;-<span class="st"> </span><span class="kw">ifelse</span>(p <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p, p)</code></pre></div>
 <div id="exercise-7" class="section level3">
 <h3>Exercise 7</h3>
@@ -227,7 +227,7 @@ f(A) = p = \frac{(\text{no. of } A \text{ allele in the population})}{2 \times \
 </div>
 <div id="save-r-objects" class="section level2">
 <h2>Save R objects</h2>
-<p>Save the variable <code>W</code> so that we can reuse in the next class.</p>
+<p>Save the variable <code>W</code> so that we can reuse it in the next class.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(W, <span class="dt">file =</span> <span class="st">&quot;W.Rda&quot;</span>)</code></pre></div>
 </div>
 </div>

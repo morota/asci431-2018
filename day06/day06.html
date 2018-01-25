@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+<meta name="date" content="2018-01-25" />
+
+<title>The basis of genetic likeness</title>
+
+<script src="day06_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day06_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day06_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day06_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day06_files/navigation-1.1/tabsets.js"></script>
+<script src="day06_files/navigation-1.1/codefolding.js"></script>
+<link href="day06_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day06_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day06_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day06_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">The basis of genetic likeness</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">The basis of genetic likeness</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#reading-file">Reading file</a></li>
+      <li><a href="#synbreed-package">synbreed package</a></li>
+      <li><a href="#kinship2-package">kinship2 package</a></li>
+      <li><a href="#save-r-object">Save R object</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level2">
+<h2>Overview</h2>
+<p>We will learn how to compute an additive relationship matrix from pedigree using the tabular method.</p>
+</div>
+<div id="reading-file" class="section level2">
+<h2>Reading file</h2>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;readxl&quot;</span>)
+<span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)</code></pre></div>
+</div>
+<div id="synbreed-package" class="section level2">
+<h2>synbreed package</h2>
+<p>The <a href="https://cran.r-project.org/web/packages/synbreed/index.html">synbreed</a> package includes the function <code>kin</code> for computing a relationship matrix. Learn more about the <a href="http://www.synbreed.tum.de/index.php?id=2">Synbreed</a> project. The <code>kin</code> function requires the object of class gpData for inputs.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;synbreed&quot;</span>)
+<span class="kw">library</span>(synbreed)
+gp.ped &lt;-<span class="st"> </span><span class="kw">create.pedigree</span>(<span class="dt">ID=</span>dat<span class="op">$</span>Animal, <span class="dt">Par1=</span>dat<span class="op">$</span>Sire, <span class="dt">Par2=</span>dat<span class="op">$</span>Dam, <span class="dt">unknown =</span> <span class="st">&quot;0&quot;</span>)
+<span class="kw">head</span>(gp.ped)
+gpData&lt;-<span class="st"> </span><span class="kw">create.gpData</span>(<span class="dt">pedigree =</span> gp.ped)
+<span class="kw">class</span>(gpData)</code></pre></div>
+<p>We can obtain an additive relationship matrix by setting the argument <code>ret</code> equals to <code>add</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">A1 &lt;-<span class="st"> </span><span class="kw">kin</span>(gpData, <span class="dt">ret =</span> <span class="st">&quot;add&quot;</span>)
+<span class="kw">dim</span>(A1)
+<span class="kw">table</span>(<span class="kw">colnames</span>(A1) <span class="op">==</span><span class="st"> </span><span class="kw">rownames</span>(A1))</code></pre></div>
+<p>One thing we need to be cautious of is that the <code>kin</code> function does not retrain the original order.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(<span class="kw">colnames</span>(A1))
+<span class="kw">head</span>(dat<span class="op">$</span>Animal)</code></pre></div>
+<p>This brings up a problem when we want to link phenotypic values to the A matrix because animals appear in a different order. So let’s keep the original order of animal IDs in the <code>ped</code> object and remove all animals that do not have records in the A matrix.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">index &lt;-<span class="st"> </span><span class="kw">match</span>(dat<span class="op">$</span>Animal, <span class="kw">rownames</span>(A1))
+A &lt;-<span class="st"> </span>A1[index, index]
+<span class="kw">dim</span>(A)</code></pre></div>
+<p>The <code>A</code> object is a reordered A matrix where animals appear in the same order as that of the <code>ped</code> object.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(<span class="kw">rownames</span>(A))
+<span class="kw">head</span>(dat<span class="op">$</span>Animal)
+<span class="kw">table</span>(dat<span class="op">$</span>Animal <span class="op">==</span><span class="st"> </span><span class="kw">rownames</span>(A))
+<span class="kw">table</span>(dat<span class="op">$</span>Animal <span class="op">==</span><span class="st"> </span><span class="kw">colnames</span>(A))</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>Compute the inbreeding coefficients of animals and report the average of inbreeding coefficients. Use the function <code>diag</code>.</p>
+</div>
+</div>
+<div id="kinship2-package" class="section level2">
+<h2>kinship2 package</h2>
+<p>Alternatively, we can use the <code>kinship2</code> package to compute a relationship matrix. The <code>kinship</code> function returns the <strong>coefficient of kinship</strong>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;kinship2&quot;</span>)
+<span class="kw">library</span>(kinship2)
+A2 &lt;-<span class="st"> </span><span class="kw">kinship</span>(dat<span class="op">$</span>Animal, dat<span class="op">$</span>Sire, dat<span class="op">$</span>Dam) 
+<span class="kw">dim</span>(A2)
+<span class="kw">table</span>(<span class="kw">colnames</span>(A2) <span class="op">==</span><span class="st"> </span><span class="kw">rownames</span>(A2))
+<span class="kw">table</span>(dat<span class="op">$</span>Animal <span class="op">==</span><span class="st"> </span><span class="kw">rownames</span>(A2))</code></pre></div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>Recall that the additive genetic relationship between a pair of individuals is equal to twice their coefficient of kinship. Verify this by comparing the last five animals in the <code>A2</code> and <code>A3</code> objects.</p>
+</div>
+</div>
+<div id="save-r-object" class="section level2">
+<h2>Save R object</h2>
+<p>Save the object <code>A</code> so that we can reuse in the next class.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(A, <span class="dt">file =</span> <span class="st">&quot;A.Rda&quot;</span>)</code></pre></div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> January 25, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

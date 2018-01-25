@@ -139,11 +139,11 @@ gpData&lt;-<span class="st"> </span><span class="kw">create.gpData</span>(<span 
 <p>One thing we need to be cautious of is that the <code>kin</code> function does not retrain the original order.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(<span class="kw">colnames</span>(A1))
 <span class="kw">head</span>(dat<span class="op">$</span>Animal)</code></pre></div>
-<p>This brings up a problem when we want to link phenotypic values to the A matrix because animals appear in a different order. So let’s keep the original order of animal IDs in the <code>ped</code> object and remove all animals that do not have records in the A matrix.</p>
+<p>This brings up a problem when we want to link phenotypic values to the A matrix because animals appear in a different order. So let’s keep the original order of animal IDs in the <code>dat</code> object and remove all animals that do not have records in the A matrix.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">index &lt;-<span class="st"> </span><span class="kw">match</span>(dat<span class="op">$</span>Animal, <span class="kw">rownames</span>(A1))
 A &lt;-<span class="st"> </span>A1[index, index]
 <span class="kw">dim</span>(A)</code></pre></div>
-<p>The <code>A</code> object is a reordered A matrix where animals appear in the same order as that of the <code>ped</code> object.</p>
+<p>The <code>A</code> object is a reordered A matrix where animals appear in the same order as that of the <code>dat</code> object.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(<span class="kw">rownames</span>(A))
 <span class="kw">head</span>(dat<span class="op">$</span>Animal)
 <span class="kw">table</span>(dat<span class="op">$</span>Animal <span class="op">==</span><span class="st"> </span><span class="kw">rownames</span>(A))

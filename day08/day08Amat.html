@@ -109,7 +109,7 @@ $(document).ready(function () {
       <li><a href="#computing-the-inverse-of-a-matrix">Computing the inverse of A matrix</a><ul>
       <li><a href="#a-simple-method-using-l">A simple method using L</a></li>
       <li><a href="#rapid-computation-of-the-diagonal-of-l">Rapid computation of the diagonal of L</a></li>
-      <li><a href="#a-simple-method-not-using-l-designed-for-a-non-inbred-population-henderson-1976">A simple method NOT using L designed for a non-inbred population (<a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>])</a></li>
+      <li><a href="#a-simple-method-not-using-l-designed-for-a-non-inbred-population">A simple method NOT using L designed for a non-inbred population</a></li>
       <li><a href="#are-the-three-matrices-equal">Are the three matrices equal?</a></li>
       <li><a href="#which-algorithm-is-the-fastest-to-compute-the-inverse-of-a">Which algorithm is the fastest to compute the inverse of A?</a></li>
       </ul></li>
@@ -196,8 +196,9 @@ NULL</code></pre>
 NULL</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Ainv2 &lt;-<span class="st"> </span><span class="kw">quaas</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)</code></pre></div>
 </div>
-<div id="a-simple-method-not-using-l-designed-for-a-non-inbred-population-henderson-1976" class="section level2">
-<h2>A simple method NOT using L designed for a non-inbred population (<a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>])</h2>
+<div id="a-simple-method-not-using-l-designed-for-a-non-inbred-population" class="section level2">
+<h2>A simple method NOT using L designed for a non-inbred population</h2>
+<p>This was first proposed in <a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(createAinv)</code></pre></div>
 <pre><code>function (s, d) 
 NULL</code></pre>

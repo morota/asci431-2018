@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Computing A and its inverse / HWE test</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Gota Morota" />
+    <link href="libs/remark-css/example.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Computing A and its inverse / HWE test
+## ASCI 431-831
+### Gota Morota
+### 2018/02/01
+
+---
+
+
+
+
+
+# Comparison of algorithms 
+The simulate dataset involves 1,004 animals. 
+
+- What is the fastest algorithm to compute an `\(\mathbf{A}\)` matrix?
+   - Tabular method ([Wright 1922](http://www.journals.uchicago.edu/doi/abs/10.1086/279872), [Cruden 1949](https://academic.oup.com/jhered/article-abstract/40/9/248/868992), and [Emik and Terrill 1949](https://academic.oup.com/jhered/article-abstract/40/2/51/802925)) 
+   - Recursive method for computing L ([Henderson, 1976](https://www.jstor.org/stable/2529339))
+ 
+- What is the fastest algorithm to compute the inverse of `\(\mathbf{A}\)` matrix?
+   - A simple method using L ([Henderson, 1976](https://www.jstor.org/stable/2529339))
+   - Rapid computation of the diagonal of L ([Quaas, 1976](https://www.jstor.org/stable/2529279))
+   -  A simple method NOT using L designed for a non-inbred population ([Henderson, 1976](https://www.jstor.org/stable/2529339))
+   - Take the direct inverse of `\(\mathbf{A}\)` using the `solve()` function 
+
+Developing a more efficient algorithm for computing `\(\mathbf{A}\)` or `\(\mathbf{A}^{-1}\)` is (was?) active research area in animal breeding.
+
+
+---
+# Benchmarking
+
+- Programming languages 
+   - C++ vs. R
+ 
+- Functions
+   - R function written in C vs. R function written in plain R
+    
+- Number of times to evaluate the expression
+
+- Order of evaluations  
+
+- Operating systems 
+
+---
+# Measuring running time of R code
+
+- [Sys.time()](https://www.rdocumentation.org/packages/base/versions/3.4.3/topics/Sys.time) built in function
+
+- [system.time()](https://www.rdocumentation.org/packages/base/versions/3.4.3/topics/system.time) built in function
+
+- [rbenchmark](https://cran.r-project.org/web/packages/rbenchmark/index.html) package
+
+- [tictoc](https://cran.r-project.org/web/packages/tictoc/index.html) package 
+
+- [microbenchmark](https://cran.r-project.org/web/packages/microbenchmark/index.html) package 
+
+
+--
+
+Our choice of function is the `microbenchmark` function in the microbenchmark package. Follow the link [here](http://morotalab.org/asci431-2018/day08/day08Amat.html) to see the comparisons of algorithms.  
+
+
+
+
+
+
+---
+# Invert a large matrix?
+
+--
+
+- Use sovle() to obtain `\(\mathbf{A}^{-1}\)` from `\(\mathbf{A}\)` 
+
+--
+
+- Obtain `\(\mathbf{A}^{-1}\)` with setting up `\(\mathbf{A}\)`? 
+
+--
+
+- Rounding errors
+
+
+
+
+---
+# Source code - synbreed::kin
+
+```r
+libary(synbreed)
+&gt; kin
+function (gpData, ret = c("add", "kin", "dom", "gam", "realized", 
+    "realizedAB", "sm", "sm-smin", "gaussian"), DH = NULL, maf = NULL, 
+    selfing = NULL, lambda = 1, P = NULL, cores = 1) 
+{
+    ret &lt;- match.arg(ret, choices = c("add", "kin", "dom", "gam", 
+        "realized", "realizedAB", "sm", "sm-smin", "gaussian"), 
+        several.ok = FALSE)
+    NAs &lt;- FALSE
+    if (ret %in% c("realized", "realizedAB", "sm", "sm-smin")) 
+        if (any(is.na(gpData$geno))) 
+            NAs &lt;- TRUE
+```
+
+
+---
+# Source code - kinship2::kinship
+
+```r
+libary(kinship2)
+&gt; getAnywhere(kinship.pedigree)
+It was found in the following places
+  registered S3 method for kinship from namespace kinship2
+  namespace:kinship2
+with value
+
+function (id, chrtype = "autosome", ...) 
+{
+    chrtype &lt;- match.arg(casefold(chrtype), c("autosome", "x"))
+    if (any(duplicated(id$id))) 
+        stop("All id values must be unique")
+    n &lt;- length(id$id)
+    pdepth &lt;- kindepth(id)
+    havemz &lt;- FALSE
+    if (!is.null(id$relation) &amp;&amp; any(id$relation$code == "MZ twin")) {
+        havemz &lt;- TRUE
+```
+
+
+
+---
+# What creates departure from the Hardy-Weinberg equilibrium?
+
+--
+
+- indication of genotyping error
+
+--
+
+- selection
+
+--
+
+- migration (admixed populations)
+
+--
+
+- polymorphisms are inside of copy number variations
+
+
+
+
+---
+# Hardy-Weinberg equilibrium test
+
+- Why the degree of freedom is 1 instead of 2?
+
+--
+
+   - estimate allele frequency 
+   
+--
+
+   - derive `\(\chi^2\)` statistic
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {window.dispatchEvent(new Event('resize'));});
+(function() {var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler"); if (!r) return; s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }"; d.head.appendChild(s);})();</script>
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+  }
+});
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

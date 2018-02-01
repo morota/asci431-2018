@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+
+<title>Computing A and its inverse</title>
+
+<script src="day08Amat_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day08Amat_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day08Amat_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day08Amat_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day08Amat_files/navigation-1.1/tabsets.js"></script>
+<script src="day08Amat_files/navigation-1.1/codefolding.js"></script>
+<link href="day08Amat_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day08Amat_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day08Amat_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day08Amat_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">Computing A and its inverse</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">Computing A and its inverse</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#read-pedigree-data">Read pedigree data</a></li>
+      <li><a href="#computing-a-matrix">Computing A matrix</a><ul>
+      <li><a href="#tabular-method">Tabular method</a></li>
+      <li><a href="#recursive-method-for-computing-l">Recursive method for computing L</a></li>
+      <li><a href="#are-the-two-matrices-equal">Are the two matrices equal?</a></li>
+      <li><a href="#which-algorithm-is-the-fastest-to-compute-a">Which algorithm is the fastest to compute A?</a></li>
+      </ul></li>
+      <li><a href="#computing-the-inverse-of-a-matrix">Computing the inverse of A matrix</a><ul>
+      <li><a href="#a-simple-method-using-l">A simple method using L</a></li>
+      <li><a href="#rapid-computation-of-the-diagonal-of-l">Rapid computation of the diagonal of L</a></li>
+      <li><a href="#a-simple-method-not-using-l-designed-for-a-non-inbred-population-henderson-1976">A simple method NOT using L designed for a non-inbred population (<a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>])</a></li>
+      <li><a href="#are-the-three-matrices-equal">Are the three matrices equal?</a></li>
+      <li><a href="#which-algorithm-is-the-fastest-to-compute-the-inverse-of-a">Which algorithm is the fastest to compute the inverse of A?</a></li>
+      </ul></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<p>We will evaluate what is the fastest way to compute an <span class="math inline">\(\mathbf{A}\)</span> matrix and its inverse.</p>
+<div id="read-pedigree-data" class="section level1">
+<h1>Read pedigree data</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="st">&quot;../data/Simdata.xlsx&quot;</span>)</code></pre></div>
+</div>
+<div id="computing-a-matrix" class="section level1">
+<h1>Computing A matrix</h1>
+<div id="tabular-method" class="section level2">
+<h2>Tabular method</h2>
+<p>The <code>createA</code> function computes the <span class="math inline">\(\mathbf{A}\)</span> matrix using a tabular method described in <a href="http://www.journals.uchicago.edu/doi/abs/10.1086/279872">Wright, 1922</a>, <a href="https://academic.oup.com/jhered/article-abstract/40/9/248/868992">Cruden, 1949</a>, and <a href="https://academic.oup.com/jhered/article-abstract/40/2/51/802925">Emik and Terrill, 1949</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(createA)</code></pre></div>
+<pre><code>function (s, d) 
+NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">A_tab &lt;-<span class="st"> </span><span class="kw">createA</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)</code></pre></div>
+</div>
+<div id="recursive-method-for-computing-l" class="section level2">
+<h2>Recursive method for computing L</h2>
+<p>The <code>createL</code> function computes the <span class="math inline">\(\mathbf{L}\)</span> matrix described in <a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>. Then, <span class="math inline">\(\mathbf{A}\)</span> can be obtained as <span class="math inline">\(\mathbf{A} = \mathbf{LL}&#39;\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(createL)</code></pre></div>
+<pre><code>function (s, d) 
+NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">L &lt;-<span class="st"> </span><span class="kw">createL</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+A_L &lt;-<span class="st"> </span>L<span class="op">%*%</span><span class="kw">t</span>(L)</code></pre></div>
+</div>
+<div id="are-the-two-matrices-equal" class="section level2">
+<h2>Are the two matrices equal?</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">all.equal</span>(A_tab, A_L)</code></pre></div>
+</div>
+<div id="which-algorithm-is-the-fastest-to-compute-a" class="section level2">
+<h2>Which algorithm is the fastest to compute A?</h2>
+<p>The <code>microbenchmark</code> function in the <a href="https://cran.r-project.org/web/packages/microbenchmark/index.html">microbenchmark</a> package can be used to benchmark the efficiency of your R code. We will use this function to compare the performance of tabular method (<code>createA</code>) and recursive method for computing L (<code>createL</code>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(microbenchmark) 
+<span class="kw">microbenchmark</span>(
+   <span class="st">&quot;A = tabular method&quot;</span> =<span class="st"> </span>{
+     A_tab &lt;-<span class="st"> </span><span class="kw">createA</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     },
+   
+   <span class="st">&quot;A = LL&#39;&quot;</span> =<span class="st"> </span>{
+     L &lt;-<span class="st"> </span><span class="kw">createL</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     A_L &lt;-<span class="st"> </span>L<span class="op">%*%</span><span class="kw">t</span>(L) 
+     },
+   
+   <span class="dt">times =</span> 50L
+ ) </code></pre></div>
+<p>Alternative appraoch is to replace <code>L%*%t(L)</code> with <code>tcrossprod(L)</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">microbenchmark</span>(
+   <span class="st">&quot;A = tabular method&quot;</span> =<span class="st"> </span>{
+     A_tab &lt;-<span class="st"> </span><span class="kw">createA</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     },
+   
+   <span class="st">&quot;A = LL&#39;&quot;</span> =<span class="st"> </span>{
+     L &lt;-<span class="st"> </span><span class="kw">createL</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     A_L &lt;-<span class="st"> </span><span class="kw">tcrossprod</span>(L) 
+     },
+   
+   <span class="dt">times =</span> 50L
+ ) </code></pre></div>
+</div>
+</div>
+<div id="computing-the-inverse-of-a-matrix" class="section level1">
+<h1>Computing the inverse of A matrix</h1>
+<div id="a-simple-method-using-l" class="section level2">
+<h2>A simple method using L</h2>
+<p>This was first proposed in <a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(createAinvL)</code></pre></div>
+<pre><code>function (s, d) 
+NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Ainv1 &lt;-<span class="st"> </span><span class="kw">createAinvL</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)</code></pre></div>
+</div>
+<div id="rapid-computation-of-the-diagonal-of-l" class="section level2">
+<h2>Rapid computation of the diagonal of L</h2>
+<p>This was first proposed in <a href="https://www.jstor.org/stable/2529279">Quaas, 1976</a>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(quaas)</code></pre></div>
+<pre><code>function (s, d) 
+NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Ainv2 &lt;-<span class="st"> </span><span class="kw">quaas</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)</code></pre></div>
+</div>
+<div id="a-simple-method-not-using-l-designed-for-a-non-inbred-population-henderson-1976" class="section level2">
+<h2>A simple method NOT using L designed for a non-inbred population (<a href="https://www.jstor.org/stable/2529339">Henderson, 1976</a>])</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">args</span>(createAinv)</code></pre></div>
+<pre><code>function (s, d) 
+NULL</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Ainv3 &lt;-<span class="st"> </span><span class="kw">createAinv</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)</code></pre></div>
+</div>
+<div id="are-the-three-matrices-equal" class="section level2">
+<h2>Are the three matrices equal?</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">all.equal</span>(Ainv1, Ainv2)
+<span class="kw">all.equal</span>(Ainv1, Ainv3)
+<span class="kw">all.equal</span>(Ainv2, Ainv3)</code></pre></div>
+</div>
+<div id="which-algorithm-is-the-fastest-to-compute-the-inverse-of-a" class="section level2">
+<h2>Which algorithm is the fastest to compute the inverse of A?</h2>
+<p>We will compare the three algorithms and the <code>solve()</code> function using the <code>microbenchmark</code> function.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(microbenchmark) 
+<span class="kw">microbenchmark</span>(
+   <span class="st">&quot;Ainv1 = Henderson (1976)&quot;</span> =<span class="st"> </span>{
+     Ainv1 &lt;-<span class="st"> </span><span class="kw">createAinvL</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     },
+   
+   <span class="st">&quot;Ainv2 = Quaas (1976)&quot;</span> =<span class="st"> </span>{
+     Ainv2 &lt;-<span class="st"> </span><span class="kw">quaas</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     },
+   
+    <span class="st">&quot;Ainv3 = Henderson (1976, non-inbred)&quot;</span> =<span class="st"> </span>{
+     Ainv3 &lt;-<span class="st"> </span><span class="kw">createAinv</span>(<span class="dt">s=</span>dat<span class="op">$</span>Sire, <span class="dt">d=</span>dat<span class="op">$</span>Dam)
+     },
+   
+   <span class="st">&quot;Ainv4 = solve() function&quot;</span> =<span class="st"> </span>{
+     Ainv4 &lt;-<span class="st"> </span><span class="kw">solve</span>(A_L)
+     },
+   <span class="dt">times =</span> 50L
+ ) </code></pre></div>
+</div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> February 1, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

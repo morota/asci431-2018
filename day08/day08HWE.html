@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+
+<title>Hardy-Weinberg equilibrium test</title>
+
+<script src="day08HWE_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day08HWE_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day08HWE_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day08HWE_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day08HWE_files/navigation-1.1/tabsets.js"></script>
+<script src="day08HWE_files/navigation-1.1/codefolding.js"></script>
+<link href="day08HWE_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day08HWE_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day08HWE_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day08HWE_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">Hardy-Weinberg equilibrium test</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">Hardy-Weinberg equilibrium test</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#genetics-package">genetics package</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="genetics-package" class="section level2">
+<h2>genetics package</h2>
+<p>Hardy-Weinberg equilibrium test can be performed using the <a href="https://cran.r-project.org/web/packages/genetics/index.html">genetics</a> package.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="st">&quot;~/Dropbox/chikudaisei/teaching/2018/ASCI431-831/day04/W.Rda&quot;</span>)
+
+<span class="kw">install.packages</span>(<span class="st">&quot;genetics&quot;</span>)
+<span class="kw">library</span>(genetics)
+
+<span class="co"># Use only the first 200 SNPs</span>
+Wsub &lt;-<span class="st"> </span>W[,<span class="dv">1</span><span class="op">:</span><span class="dv">200</span>]
+G &lt;-<span class="st"> </span><span class="kw">makeGenotypes</span>(Wsub, <span class="dt">convert =</span> <span class="kw">c</span>(<span class="kw">colnames</span>(Wsub)), <span class="dt">method =</span> as.genotype.allele.count)
+
+?HWE.chisq
+
+<span class="co"># testing for the 3rd SNP</span>
+<span class="kw">HWE.chisq</span>(G[,<span class="dv">3</span>])</code></pre></div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> February 1, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

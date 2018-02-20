@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+<meta name="date" content="2018-02-20" />
+
+<title>Repeatability and Heritability</title>
+
+<script src="day13_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day13_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day13_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day13_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day13_files/navigation-1.1/tabsets.js"></script>
+<script src="day13_files/navigation-1.1/codefolding.js"></script>
+<link href="day13_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day13_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day13_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day13_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">Repeatability and Heritability</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">Repeatability and Heritability</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#reading-file">Reading file</a></li>
+      <li><a href="#pre-adjustment-of-phenotypes">Pre-adjustment of phenotypes</a></li>
+      <li><a href="#phenotypes">Phenotypes</a></li>
+      <li><a href="#systematic-effects">Systematic effects</a><ul>
+      <li><a href="#age-of-dams">Age of dams</a></li>
+      <li><a href="#sex-of-calves">Sex of calves</a></li>
+      <li><a href="#bw-and-age-of-dams">BW and age of dams</a></li>
+      <li><a href="#bw-and-sex-of-calves">BW and sex of calves</a></li>
+      </ul></li>
+      <li><a href="#ordinary-least-squares">Ordinary least squares</a><ul>
+      <li><a href="#bw-and-age-of-dams-1">BW and age of dams</a></li>
+      </ul></li>
+      <li><a href="#number-of-records-per-sire">Number of records per sire</a></li>
+      <li><a href="#unbalanced-data">Unbalanced data</a></li>
+      <li><a href="#anova">ANOVA</a></li>
+      <li><a href="#references">References</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>We will learn how to compute repeatability and heritability using an analysis of variance (ANOVA) in R.</p>
+</div>
+<div id="reading-file" class="section level1">
+<h1>Reading file</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)</code></pre></div>
+</div>
+<div id="pre-adjustment-of-phenotypes" class="section level1">
+<h1>Pre-adjustment of phenotypes</h1>
+<p>We will calculate repeatability by considering calf body weights (BW) at 205 day as repeated records on the sire. The ANOVA discussed in class is called one-way ANOVA, which assumes that there are no other factors or covariates influencing repeated records. This is not true for the beef cattle dataset because <code>Sex</code> and <code>AgeDamCat</code> are known to contribute to BW. Pre-correction of BW is therefore required before applying the ANOVA. One way to achieve this is to fit ordinary least squares (OLS). Below we will learn how to connect phenotypes and systematic effects (fixed effects) using OLS.</p>
+</div>
+<div id="phenotypes" class="section level1">
+<h1>Phenotypes</h1>
+<p>The <code>hist()</code> function plot a histogram.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>BW_205d, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;BW&quot;</span>)</code></pre></div>
+<p>The argument <code>prob=TRUE</code> returns a probability on the y axis. We use the <code>lines()</code> function to add a density estimate along with the histogram.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>BW_205d, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">prob =</span> <span class="ot">TRUE</span>, <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">0</span>, 
+    <span class="fl">0.01</span>), <span class="dt">xlab =</span> <span class="st">&quot;BW&quot;</span>)
+<span class="kw">lines</span>(<span class="kw">density</span>(dat<span class="op">$</span>BW_205d), <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>What are the mean, median, standard deviation, maximum, and minimum of BW?</p>
+</div>
+</div>
+<div id="systematic-effects" class="section level1">
+<h1>Systematic effects</h1>
+<p>We will estimate the effects of age of dam categories and sex of calves on BW. Let’s first check the distributions of the systematic effects.</p>
+<div id="age-of-dams" class="section level2">
+<h2>Age of dams</h2>
+<p>The <code>hist()</code> functions plot a histogram.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>AgeDamCat, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>)</code></pre></div>
+<p>Below is a histogram with the argumment <code>prob=TRUE</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>AgeDamCat, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">prob =</span> <span class="ot">TRUE</span>, <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>)
+<span class="kw">lines</span>(<span class="kw">density</span>(dat<span class="op">$</span>AgeDamCat), <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)</code></pre></div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>What are the mean, median, standard deviation, maximum, and minimum of age of dam categories?</p>
+</div>
+</div>
+<div id="sex-of-calves" class="section level2">
+<h2>Sex of calves</h2>
+<p>The <code>barplot()</code> function generates a barplot.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">barplot</span>(<span class="kw">table</span>(dat<span class="op">$</span>Sex), <span class="dt">main =</span> <span class="st">&quot;Distribution&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;Frequency&quot;</span>, <span class="dt">names.arg =</span> <span class="kw">c</span>(<span class="st">&quot;Female&quot;</span>, 
+    <span class="st">&quot;Male&quot;</span>), <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>)</code></pre></div>
+</div>
+<div id="bw-and-age-of-dams" class="section level2">
+<h2>BW and age of dams</h2>
+<p>Here we visualize the relationship between age of dams and BW.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(dat<span class="op">$</span>AgeDamCat, dat<span class="op">$</span>BW_205d, <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;BW_205d&quot;</span>)
+<span class="kw">abline</span>(<span class="kw">lm</span>(dat<span class="op">$</span>BW_205d <span class="op">~</span><span class="st"> </span>dat<span class="op">$</span>AgeDamCat), <span class="dt">lwd =</span> <span class="dv">3</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)
+<span class="kw">lines</span>(<span class="kw">lowess</span>(dat<span class="op">$</span>AgeDamCat, dat<span class="op">$</span>BW_205d), <span class="dt">lwd =</span> <span class="dv">4</span>, <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)</code></pre></div>
+<div id="exercise-3" class="section level3">
+<h3>Exercise 3</h3>
+<p>What is the correlation between age of dams and BW?</p>
+</div>
+</div>
+<div id="bw-and-sex-of-calves" class="section level2">
+<h2>BW and sex of calves</h2>
+<p>The <code>boxplot()</code> function generates distributions of BW for bulls and cows.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(dat<span class="op">$</span>BW_205d[dat<span class="op">$</span>Sex <span class="op">==</span><span class="st"> &quot;M&quot;</span>], dat<span class="op">$</span>BW_205d[dat<span class="op">$</span>Sex <span class="op">==</span><span class="st"> &quot;F&quot;</span>], <span class="dt">names =</span> <span class="kw">c</span>(<span class="st">&quot;Male&quot;</span>, 
+    <span class="st">&quot;Female&quot;</span>), <span class="dt">ylab =</span> <span class="st">&quot;BW&quot;</span>)</code></pre></div>
+<div id="exercise-4" class="section level3">
+<h3>Exercise 4</h3>
+<p>What is the mean difference between BW of bulls and cows?</p>
+</div>
+</div>
+</div>
+<div id="ordinary-least-squares" class="section level1">
+<h1>Ordinary least squares</h1>
+<p>We will use the <code>lm()</code> function to fit OLS and adjust for covariates. This function offers an intuitive formula syntax. The <code>summary()</code> function summarizes a model fit.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(BW_205d <span class="op">~</span><span class="st"> </span>AgeDamCat <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(Sex), <span class="dt">data =</span> dat)
+<span class="kw">summary</span>(fit)
+<span class="kw">residuals</span>(fit)</code></pre></div>
+<div id="exercise-5" class="section level3">
+<h3>Exercise 5</h3>
+<p>Check whether the distributions of BW for bulls and cows are similar in <code>residuals(fit)</code>. Use the <code>boxplot()</code> function.</p>
+</div>
+<div id="bw-and-age-of-dams-1" class="section level2">
+<h2>BW and age of dams</h2>
+<p>Visualize the relationship between age of dams and BW after the correction.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(dat<span class="op">$</span>AgeDamCat, <span class="kw">residuals</span>(fit), <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>, <span class="dt">ylab =</span> <span class="st">&quot;BW_205d&quot;</span>)
+<span class="kw">abline</span>(<span class="kw">lm</span>(<span class="kw">residuals</span>(fit) <span class="op">~</span><span class="st"> </span>dat<span class="op">$</span>AgeDamCat), <span class="dt">lwd =</span> <span class="dv">3</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)
+<span class="kw">lines</span>(<span class="kw">lowess</span>(dat<span class="op">$</span>AgeDamCat, <span class="kw">residuals</span>(fit)), <span class="dt">lwd =</span> <span class="dv">4</span>, <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)</code></pre></div>
+</div>
+</div>
+<div id="number-of-records-per-sire" class="section level1">
+<h1>Number of records per sire</h1>
+<p>Let’s investigate how many records each sire has. The <code>table()</code> functions returns a frequency table and the <code>barplot()</code> function generates a barplot.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">table</span>(dat<span class="op">$</span>Sire)
+<span class="kw">barplot</span>(<span class="kw">table</span>(dat<span class="op">$</span>Sire), <span class="dt">xlab =</span> <span class="st">&quot;Sire IDs&quot;</span>)</code></pre></div>
+<div id="exercise-6" class="section level3">
+<h3>Exercise 6</h3>
+<p>Count the number of sires that has only one record. Again use the <code>table()</code> and <code>barplot()</code> functions.</p>
+</div>
+</div>
+<div id="unbalanced-data" class="section level1">
+<h1>Unbalanced data</h1>
+<p>The ANOVA we discussed in class is called balanced ANOVA because the number of records per bird was fixed with <code>n</code> = 10. Unlike such an experimental design, data from observatinal studies are hihgly unbalanced as in the case of our simulated beef cattle dataset. Because the number of records per sire varies, we will calculate an adjusted <code>n</code> or <code>k1</code> according to Becker (1975). This is given by <span class="math display">\[
+\begin{align*}
+k_1 &amp;= \frac{1}{s-1} \times (N - \frac{\sum_{i}^{s}n_i^2}{N})
+\end{align*},
+\]</span> where <span class="math inline">\(s\)</span> is the number of sires, <span class="math inline">\(N\)</span> is the total number of observations, and <span class="math inline">\(n_i\)</span> is the number of records from <span class="math inline">\(i\)</span>th sire. The following R code computes <span class="math inline">\(s\)</span>, <span class="math inline">\(N\)</span>, and <span class="math inline">\(\sum_{i}^{s}n_i^2\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">N &lt;-<span class="st"> </span><span class="kw">nrow</span>(dat)
+N
+s &lt;-<span class="st"> </span><span class="kw">length</span>(<span class="kw">table</span>(dat<span class="op">$</span>Sire))
+s
+ni2_sum &lt;-<span class="st"> </span><span class="kw">sum</span>(<span class="kw">table</span>(dat<span class="op">$</span>Sire)<span class="op">^</span><span class="dv">2</span>)
+ni2_sum</code></pre></div>
+<div id="exercise-7" class="section level3">
+<h3>Exercise 7</h3>
+<p>Compute <code>k1</code> which is the adjusted number of records per sire.</p>
+</div>
+<div id="exercise-8" class="section level3">
+<h3>Exercise 8</h3>
+<p>Compare <code>k1</code> with the mean of number of records per sire.</p>
+</div>
+</div>
+<div id="anova" class="section level1">
+<h1>ANOVA</h1>
+<p>We will fit the ANOVA to the simulated beef cattle dataset. The <code>aov()</code> function performs ANOVA. This function takes two arguments: a vector of observations and a vector of group variables.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="st">`</span><span class="dt">?</span><span class="st">`</span>(aov)
+my.aov &lt;-<span class="st"> </span><span class="kw">aov</span>(<span class="kw">residuals</span>(fit) <span class="op">~</span><span class="st"> </span><span class="kw">factor</span>(dat<span class="op">$</span>Sire))
+my.aov</code></pre></div>
+<p>The <code>summary()</code> functions returns an ANOVA table.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">aov.summary &lt;-<span class="st"> </span><span class="kw">summary</span>(my.aov)
+aov.summary</code></pre></div>
+<p>Because the object <code>aov.summary</code> is a list, we can use the double square brackets followed by the single square brackets to access each number in the ANOVA table.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(aov.summary)
+aov.summary[[<span class="dv">1</span>]]
+MSB &lt;-<span class="st"> </span>aov.summary[[<span class="dv">1</span>]][<span class="dv">1</span>, <span class="dv">3</span>]
+MSB
+MSW &lt;-<span class="st"> </span>aov.summary[[<span class="dv">1</span>]][<span class="dv">2</span>, <span class="dv">3</span>]
+MSW</code></pre></div>
+<div id="exercise-9" class="section level3">
+<h3>Exercise 9</h3>
+<p>Recall that repeatability is the corrleation between repeated records on an individual. This is given by <span class="math display">\[
+\begin{align*}
+r &amp;= \frac{V(B)}{V(B) + V(W)}
+\end{align*},
+\]</span> where <span class="math inline">\(V(B) = \frac{MS_B - MS_W}{k_1}\)</span> and <span class="math inline">\(V(W) = MS_W\)</span>. We can now compute repeatability while controlling for covariates. Report the estimate of repeatability.</p>
+</div>
+<div id="exercise-10" class="section level3">
+<h3>Exercise 10</h3>
+<p>Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using a sire model.</p>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li>Becker WA. Manual of Quantitative Genetics. 1975. Program in Genetic, Washington State University, Pullman, Washington. [<a href="https://www.amazon.com/Manual-quantitative-genetics-Walter-Becker/dp/0931399009">Amazon</a>] [<a href="http://onlinelibrary.wiley.com/wol1/doi/10.1111/j.1439-037X.1986.tb00069.x/abstract">Book review</a>]</li>
+</ul>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> February 20, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

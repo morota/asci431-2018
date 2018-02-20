@@ -1,0 +1,266 @@
+---
+title: "Repeatability and Heritability"
+author: "Gota Morota"
+date: "February 20, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to compute repeatability and heritability using an analysis of variance (ANOVA) in R.  
+
+# Reading file
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format.
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+```
+
+# Pre-adjustment of phenotypes 
+We will calculate repeatability by considering calf body weights (BW) at 205 day as repeated records on the sire. The ANOVA discussed in class is called one-way ANOVA, which assumes that there are no other factors or covariates influencing repeated records. This is not true for the beef cattle dataset because `Sex` and `AgeDamCat` are known to contribute to BW. Pre-correction of BW is therefore required before applying the ANOVA. One way to achieve this is to fit ordinary least squares (OLS). Below we will learn how to connect phenotypes and systematic effects (fixed effects) using OLS. 
+
+
+# Phenotypes 
+The `hist()` function plot a histogram. 
+```{r, eval=FALSE}
+hist(dat$BW_205d, col = "lightblue", main="Histogram", xlab="BW")
+```
+
+
+The argument `prob=TRUE` returns a probability on the y axis. We use the `lines()` function to add a density estimate along with the histogram. 
+```{r, eval=FALSE}
+hist(dat$BW_205d, col = "lightblue", main="Histogram", prob=TRUE, ylim=c(0,0.010), xlab="BW")
+lines(density(dat$BW_205d), col="red")   
+```
+
+
+### Exercise 1
+What are the mean, median, standard deviation, maximum, and minimum of BW?
+```{r, eval=FALSE, echo=FALSE}
+mean(dat$BW_205d)
+median(dat$BW_205d)
+sd(dat$BW_205d)
+max(dat$BW_205d)
+min(dat$BW_205d)
+```
+
+
+# Systematic effects 
+We will estimate the effects of age of dam categories and sex of calves on BW. 
+Let's first check the distributions of the systematic effects. 
+
+
+## Age of dams
+The `hist()` functions plot a histogram. 
+```{r, eval=FALSE}
+hist(dat$AgeDamCat, col = "lightblue", main="Histogram", xlab="Age of dams")
+```
+
+Below is a histogram with the argumment `prob=TRUE`. 
+```{r, eval=FALSE}
+hist(dat$AgeDamCat, col = "lightblue", main="Histogram", prob=TRUE, xlab="Age of dams")
+lines(density(dat$AgeDamCat), col="red")   
+```
+
+
+### Exercise 2
+What are the mean, median, standard deviation, maximum, and minimum of age of dam categories?
+```{r, eval=FALSE, echo=FALSE}
+mean(dat$AgeDamCat)
+median(dat$AgeDamCat)
+sd(dat$AgeDamCat)
+max(dat$AgeDamCat)
+min(dat$AgeDamCat)
+```
+
+
+
+## Sex of calves
+The `barplot()` function generates a barplot. 
+```{r, eval=FALSE}
+barplot(table(dat$Sex), main="Distribution", ylab="Frequency",   names.arg = c("Female", "Male"), col="lightblue")
+```
+
+## BW and age of dams
+Here we visualize the relationship between age of dams and BW. 
+```{r, eval=FALSE}
+plot(dat$AgeDamCat, dat$BW_205d, xlab="Age of dams", ylab="BW_205d")
+abline(lm(dat$BW_205d ~  dat$AgeDamCat), lwd=3, col="red") 
+lines(lowess(dat$AgeDamCat, dat$BW_205d), lwd=4, col="blue") 
+```
+
+
+### Exercise 3
+What is the correlation between age of dams and BW?
+```{r, eval=FALSE, echo=FALSE}
+cor(dat$AgeDamCat, dat$BW_205d)
+```
+
+
+## BW and sex of calves
+The `boxplot() ` function generates distributions of BW for bulls and cows.
+```{r, eval=FALSE}
+boxplot(dat$BW_205d[dat$Sex == "M"], dat$BW_205d[dat$Sex == "F"], names = c("Male", "Female"), ylab="BW")
+```
+
+### Exercise 4
+What is the mean difference between BW of bulls and cows?
+```{r, eval=FALSE, echo=FALSE}
+mean(dat$BW_205d[dat$Sex == "M"]) - mean(dat$BW_205d[dat$Sex == "F"])
+```
+
+
+# Ordinary least squares
+We will use the `lm()` function to fit OLS and adjust for covariates. This function offers an intuitive formula syntax. The `summary()` function summarizes a model fit. 
+```{r, eval=FALSE}
+fit <- lm(BW_205d ~ AgeDamCat + factor(Sex), data=dat)
+summary(fit)
+residuals(fit)
+```
+
+
+
+
+### Exercise 5
+Check whether the distributions of BW for bulls and cows are similar in `residuals(fit)`. Use the `boxplot() ` function.  
+```{r, eval=FALSE, echo=FALSE}
+boxplot(residuals(fit)[dat$Sex == "M"], residuals(fit)[dat$Sex == "F"], names = c("Male", "Female"), ylab="BW")
+```
+
+
+
+
+## BW and age of dams
+Visualize the relationship between age of dams and BW after the correction. 
+```{r, eval=FALSE}
+plot(dat$AgeDamCat, residuals(fit), xlab="Age of dams", ylab="BW_205d")
+abline(lm(residuals(fit) ~  dat$AgeDamCat), lwd=3, col="red") 
+lines(lowess(dat$AgeDamCat, residuals(fit)), lwd=4, col="blue") 
+```
+
+
+
+# Number of records per sire 
+Let's investigate how many records each sire has. The `table()` functions returns a frequency table and the `barplot()` function generates a barplot. 
+```{r, eval=FALSE}
+table(dat$Sire)
+barplot(table(dat$Sire), xlab="Sire IDs")
+```
+
+### Exercise 6
+Count the number of sires that has only one record. Again use the `table()` and `barplot()` functions. 
+```{r, eval=FALSE, echo=FALSE}
+table(table(dat$Sire))
+barplot(table(table(dat$Sire)), xlab = "Number of records", ylab="Number of sires")
+```
+
+
+# Unbalanced data
+The ANOVA we discussed in class is called balanced ANOVA because the number of records per bird was fixed with `n` = 10. Unlike such an experimental design, data from observatinal studies are hihgly unbalanced as in the case of our simulated beef cattle dataset. Because the number of records per sire varies, we will calculate an adjusted `n` or `k1` according to Becker (1975). This is given by 
+$$
+\begin{align*}
+k_1 &= \frac{1}{s-1} \times (N - \frac{\sum_{i}^{s}n_i^2}{N})
+\end{align*},
+$$
+where $s$ is the number of sires, $N$ is the total number of observations, and $n_i$ is the number of records from $i$th sire. 
+The following R code computes $s$, $N$, and $\sum_{i}^{s}n_i^2$. 
+```{r, eval=FALSE}
+N <- nrow(dat)
+N
+s <- length(table(dat$Sire))
+s
+ni2_sum <- sum(table(dat$Sire)^2)
+ni2_sum
+```       
+
+###  Exercise 7
+Compute `k1` which is the adjusted number of records per sire. 
+```{r, eval=FALSE, echo=FALSE}
+k1 <- (1 / (s-1)  ) * ( N - (ni2_sum / N) ) 
+k1
+```
+
+### Exercise 8
+Compare `k1` with the mean of number of records per sire.
+```{r, eval=FALSE, echo=FALSE}
+avg <- mean(table(dat$Sire))
+avg
+```
+
+# ANOVA
+We will fit the ANOVA to the simulated beef cattle dataset. The `aov()` function performs ANOVA. This function takes two arguments: a vector of observations and a vector of group variables. 
+```{r, eval=FALSE}
+?aov
+my.aov <- aov(residuals(fit) ~ factor(dat$Sire))
+my.aov
+```
+
+The `summary()` functions returns an ANOVA table. 
+```{r, eval=FALSE}
+aov.summary <- summary(my.aov)
+aov.summary
+```
+
+Because the object `aov.summary` is a list, we can use the double square brackets followed by the single square brackets to access each number in the ANOVA table. 
+```{r, eval=FALSE}
+str(aov.summary)
+aov.summary[[1]]
+MSB <- aov.summary[[1]][1,3]
+MSB
+MSW <- aov.summary[[1]][2,3]
+MSW
+```
+
+### Exercise 9
+Recall that repeatability is the corrleation between repeated records on an individual. This is given by 
+$$
+\begin{align*}
+r &= \frac{V(B)}{V(B) + V(W)}
+\end{align*},
+$$
+where $V(B) = \frac{MS_B - MS_W}{k_1}$ and $V(W) = MS_W$. 
+We can now compute repeatability while controlling for covariates. Report the estimate of repeatability.
+```{r, eval=FALSE, echo=FALSE}
+VB <- (MSB - MSW ) /  k1
+VB
+VW <- MSW
+VW
+r <- VB / (VB + VW)
+r
+```
+
+### Exercise 10
+Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using a sire model.
+```{r, eval=FALSE, echo=FALSE}
+h2 <- (4*VB) / (VB + VW)
+h2
+```
+
+# References
+* Becker WA. Manual of Quantitative Genetics. 1975. Program in Genetic, Washington State University, Pullman, Washington. [[Amazon](https://www.amazon.com/Manual-quantitative-genetics-Walter-Becker/dp/0931399009)] [[Book review](http://onlinelibrary.wiley.com/wol1/doi/10.1111/j.1439-037X.1986.tb00069.x/abstract)]
+
+
+
+
+

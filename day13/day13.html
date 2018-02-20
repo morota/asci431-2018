@@ -140,7 +140,7 @@ dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class
 </div>
 <div id="phenotypes" class="section level1">
 <h1>Phenotypes</h1>
-<p>The <code>hist()</code> function plot a histogram.</p>
+<p>The <code>hist()</code> function plots a histogram.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>BW_205d, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;BW&quot;</span>)</code></pre></div>
 <p>The argument <code>prob=TRUE</code> returns a probability on the y axis. We use the <code>lines()</code> function to add a density estimate along with the histogram.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>BW_205d, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">prob =</span> <span class="ot">TRUE</span>, <span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">0</span>, 
@@ -153,17 +153,17 @@ dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class
 </div>
 <div id="systematic-effects" class="section level1">
 <h1>Systematic effects</h1>
-<p>We will estimate the effects of age of dam categories and sex of calves on BW. Let’s first check the distributions of the systematic effects.</p>
+<p>We will estimate the effects of dam age categories and sex of calves on BW. Let’s first check the distributions of the systematic effects.</p>
 <div id="age-of-dams" class="section level2">
 <h2>Age of dams</h2>
-<p>The <code>hist()</code> functions plot a histogram.</p>
+<p>The <code>hist()</code> functions plots a histogram.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>AgeDamCat, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>)</code></pre></div>
 <p>Below is a histogram with the argumment <code>prob=TRUE</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(dat<span class="op">$</span>AgeDamCat, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">prob =</span> <span class="ot">TRUE</span>, <span class="dt">xlab =</span> <span class="st">&quot;Age of dams&quot;</span>)
 <span class="kw">lines</span>(<span class="kw">density</span>(dat<span class="op">$</span>AgeDamCat), <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>)</code></pre></div>
 <div id="exercise-2" class="section level3">
 <h3>Exercise 2</h3>
-<p>What are the mean, median, standard deviation, maximum, and minimum of age of dam categories?</p>
+<p>What are the mean, median, standard deviation, maximum, and minimum of dam age categories?</p>
 </div>
 </div>
 <div id="sex-of-calves" class="section level2">
@@ -180,7 +180,7 @@ dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class
 <span class="kw">lines</span>(<span class="kw">lowess</span>(dat<span class="op">$</span>AgeDamCat, dat<span class="op">$</span>BW_205d), <span class="dt">lwd =</span> <span class="dv">4</span>, <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)</code></pre></div>
 <div id="exercise-3" class="section level3">
 <h3>Exercise 3</h3>
-<p>What is the correlation between age of dams and BW?</p>
+<p>What is the correlation between dam age categories and BW?</p>
 </div>
 </div>
 <div id="bw-and-sex-of-calves" class="section level2">
@@ -270,7 +270,7 @@ r &amp;= \frac{V(B)}{V(B) + V(W)}
 </div>
 <div id="exercise-10" class="section level3">
 <h3>Exercise 10</h3>
-<p>Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using a sire model.</p>
+<p>Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using the sire model.</p>
 </div>
 </div>
 <div id="references" class="section level1">

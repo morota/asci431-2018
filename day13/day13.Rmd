@@ -42,7 +42,7 @@ We will calculate repeatability by considering calf body weights (BW) at 205 day
 
 
 # Phenotypes 
-The `hist()` function plot a histogram. 
+The `hist()` function plots a histogram. 
 ```{r, eval=FALSE}
 hist(dat$BW_205d, col = "lightblue", main="Histogram", xlab="BW")
 ```
@@ -67,12 +67,12 @@ min(dat$BW_205d)
 
 
 # Systematic effects 
-We will estimate the effects of age of dam categories and sex of calves on BW. 
+We will estimate the effects of dam age categories and sex of calves on BW. 
 Let's first check the distributions of the systematic effects. 
 
 
 ## Age of dams
-The `hist()` functions plot a histogram. 
+The `hist()` functions plots a histogram. 
 ```{r, eval=FALSE}
 hist(dat$AgeDamCat, col = "lightblue", main="Histogram", xlab="Age of dams")
 ```
@@ -85,7 +85,7 @@ lines(density(dat$AgeDamCat), col="red")
 
 
 ### Exercise 2
-What are the mean, median, standard deviation, maximum, and minimum of age of dam categories?
+What are the mean, median, standard deviation, maximum, and minimum of dam age categories?
 ```{r, eval=FALSE, echo=FALSE}
 mean(dat$AgeDamCat)
 median(dat$AgeDamCat)
@@ -112,7 +112,7 @@ lines(lowess(dat$AgeDamCat, dat$BW_205d), lwd=4, col="blue")
 
 
 ### Exercise 3
-What is the correlation between age of dams and BW?
+What is the correlation between dam age categories and BW?
 ```{r, eval=FALSE, echo=FALSE}
 cor(dat$AgeDamCat, dat$BW_205d)
 ```
@@ -251,7 +251,7 @@ r
 ```
 
 ### Exercise 10
-Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using a sire model.
+Recall that the heritability is the percentage of phenotypic difference in the parent observed in the offspring. Report the estimate of heritability using the sire model.
 ```{r, eval=FALSE, echo=FALSE}
 h2 <- (4*VB) / (VB + VW)
 h2

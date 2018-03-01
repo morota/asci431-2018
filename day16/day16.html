@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+
+<title>ICC R package</title>
+
+<script src="day16_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day16_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day16_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day16_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day16_files/navigation-1.1/tabsets.js"></script>
+<script src="day16_files/navigation-1.1/codefolding.js"></script>
+<link href="day16_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day16_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day16_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day16_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">ICC R package</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">ICC R package</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#reading-r-object">Reading R object</a></li>
+      <li><a href="#icc">ICC</a></li>
+      <li><a href="#optimal-k">Optimal k</a></li>
+      <li><a href="#confidence-interval">Confidence interval</a></li>
+      <li><a href="#number-of-sire-groups-needed-to-achieve-a-desired-ciw">Number of sire groups needed to achieve a desired CIW</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>We will learn how to apply the <a href="https://cran.r-project.org/web/packages/ICC/index.html">ICC</a> R package introduced in Wolak et al., (2012) (<a href="http://dx.doi.org/10.1111/j.2041-210X.2011.00125.x">doi:10.1111/j.2041-210X.2011.00125.x</a>) to the simulated dataset.</p>
+</div>
+<div id="reading-r-object" class="section level1">
+<h1>Reading R object</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)
+
+<span class="kw">install.packages</span>(<span class="st">&quot;ICC&quot;</span>)
+<span class="kw">library</span>(ICC)</code></pre></div>
+</div>
+<div id="icc" class="section level1">
+<h1>ICC</h1>
+<p>The function <code>ICCbare()</code> returns the estimate of intraclass corrleation coeﬃcient (ICC) , i.e., repeatability. It can be used for both balanced and unbalanced designs. Does the estimate of ICC agree with the one we obtained in class?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ICCbare</span>(<span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)</code></pre></div>
+</div>
+<div id="optimal-k" class="section level1">
+<h1>Optimal k</h1>
+<p>When the effort level is fixed (<span class="math inline">\(s \times n\)</span> or <span class="math inline">\(s \times k_1\)</span>), the <code>effort()</code> function computes ICC by internally calling the <code>ICCbare()</code> function and then plots a number of records per sire group (<span class="math inline">\(k\)</span>), one of which produces the smallest conﬁdence interval around the ICC estimate. Check the tradeoff in confidence interval width with varying <span class="math inline">\(k\)</span>. What is the estimaete of optimal <span class="math inline">\(k\)</span> in this dataset?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># par(mar=c(4,4,1,1))</span>
+<span class="kw">effort</span>(<span class="dt">est.type =</span> <span class="st">&quot;pilot&quot;</span>, <span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)</code></pre></div>
+</div>
+<div id="confidence-interval" class="section level1">
+<h1>Confidence interval</h1>
+<p>The <code>ICCest()</code> function performs a one-way ANOVA. It returns 1) the estimate of ICC, 2) the lower confidence interval of ICC, 3) the upper confidence interval of ICC, 4) the number of unique sire groups, 5) the adjusted <span class="math inline">\(k\)</span> (or <span class="math inline">\(k_1\)</span>), 6) the within group variance V(W), and 7) the between group variance V(B). What are the lower and upper confidence limits of the confidence interval for the ICC estimate?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># par(mar=c(4,4,1,1))</span>
+my.ICCest &lt;-<span class="st"> </span><span class="kw">ICCest</span>(<span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">alpha =</span> <span class="fl">0.05</span>, <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)
+my.ICCest</code></pre></div>
+</div>
+<div id="number-of-sire-groups-needed-to-achieve-a-desired-ciw" class="section level1">
+<h1>Number of sire groups needed to achieve a desired CIW</h1>
+<p>The <code>Nest()</code> function returns the number of sires or sire groups needed to achieve a predefined conﬁdence interval width (CIW). The estimate of CIW in the simulated dataset can be computed as follows.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">c</span>(my.ICCest<span class="op">$</span>LowerCI, my.ICCest<span class="op">$</span>ICC, my.ICCest<span class="op">$</span>UpperCI)
+w1 &lt;-<span class="st"> </span>my.ICCest<span class="op">$</span>UpperCI <span class="op">-</span><span class="st"> </span>my.ICCest<span class="op">$</span>LowerCI
+w1</code></pre></div>
+<p>So if we set the argument <code>w</code> equal to <code>w1</code>, the <code>Nest()</code> function produces a value that is very close to the number of unique sires in the dataset.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Nest</span>(<span class="st">&quot;pilot&quot;</span>, <span class="dt">w =</span> w1, <span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)
+<span class="kw">length</span>(<span class="kw">unique</span>(dat<span class="op">$</span>Sire))</code></pre></div>
+<p>Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.15. What is the required number of sires or sire groups?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">w2 &lt;-<span class="st"> </span><span class="fl">0.15</span>
+<span class="kw">Nest</span>(<span class="st">&quot;pilot&quot;</span>, <span class="dt">w =</span> w2, <span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)</code></pre></div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 1, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

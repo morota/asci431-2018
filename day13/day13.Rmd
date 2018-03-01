@@ -134,7 +134,7 @@ mean(dat$BW_205d[dat$Sex == "M"]) - mean(dat$BW_205d[dat$Sex == "F"])
 # Ordinary least squares
 We will use the `lm()` function to fit OLS and adjust for covariates. This function offers an intuitive formula syntax. The `summary()` function summarizes a model fit. 
 ```{r, eval=FALSE}
-fit <- lm(BW_205d ~ AgeDamCat + factor(Sex), data=dat)
+fit <- lm(BW_205d ~ factor(AgeDamCat) + factor(Sex), data=dat)
 summary(fit)
 residuals(fit)
 ```

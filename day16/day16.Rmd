@@ -1,0 +1,88 @@
+---
+title: "ICC R package"
+author: "Gota Morota"
+date: "March 1, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to apply the [ICC](https://cran.r-project.org/web/packages/ICC/index.html) R package introduced in Wolak et al., (2012) ([doi:10.1111/j.2041-210X.2011.00125.x](http://dx.doi.org/10.1111/j.2041-210X.2011.00125.x)) to the simulated dataset.   
+
+# Reading R object
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format.
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+
+install.packages("ICC")
+library(ICC)
+```
+
+
+# ICC
+The function `ICCbare()` returns the estimate of intraclass corrleation coeﬃcient (ICC) , i.e.,  repeatability. It can be used for both balanced and unbalanced designs. Does the estimate of ICC agree with the one we obtained in class?
+```{r, eval=FALSE}
+ICCbare(x = factor(Sire), y = BW_205d, data = dat)
+```
+
+
+# Optimal k
+When the effort level is fixed ($s \times n$ or $s \times k_1$), the `effort()` function computes ICC by internally calling the `ICCbare()` function and then plots a number of records per sire group ($k$), one of which produces the smallest conﬁdence interval around the ICC estimate. Check the tradeoff in confidence interval width with varying $k$. What is the estimaete of optimal $k$ in this dataset?
+```{r, eval=FALSE}
+# par(mar=c(4,4,1,1))
+effort(est.type = "pilot", x = factor(Sire), y = BW_205d, data = dat)
+```
+
+# Confidence interval
+The `ICCest()` function performs a one-way ANOVA. It returns 1) the estimate of ICC, 2) the lower confidence interval of ICC, 3) the upper confidence interval of ICC, 4) the number of unique sire groups, 5) the adjusted $k$ (or $k_1$), 6) the within group variance V(W), and 7) the between group variance V(B). What are the lower and upper confidence limits of the confidence interval for the ICC estimate? 
+```{r, eval=FALSE}
+# par(mar=c(4,4,1,1))
+my.ICCest <- ICCest(x = factor(Sire), alpha=0.05, y = BW_205d, data = dat)
+my.ICCest
+```
+
+# Number of sire groups needed to achieve a desired CIW
+The `Nest()` function returns the number of sires or sire groups needed to achieve a predefined conﬁdence interval width (CIW). The estimate of CIW in the simulated dataset can be computed as follows. 
+```{r, eval=FALSE}
+c(my.ICCest$LowerCI, my.ICCest$ICC, my.ICCest$UpperCI)
+w1 <- my.ICCest$UpperCI - my.ICCest$LowerCI
+w1
+```
+
+So if we set the argument `w` equal to `w1`, the `Nest()` function produces a value that is very close to the number of unique sires in the dataset. 
+```{r, eval=FALSE}
+Nest("pilot", w = w1, x = factor(Sire), y = BW_205d, data = dat)
+length(unique(dat$Sire))
+```
+
+Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.15. What is the required number of sires or sire groups? 
+```{r, eval=FALSE}
+w2 <- 0.15
+Nest("pilot", w = w2, x = factor(Sire), y = BW_205d, data = dat)
+```
+
+
+
+

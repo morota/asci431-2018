@@ -197,7 +197,7 @@ dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class
 <div id="ordinary-least-squares" class="section level1">
 <h1>Ordinary least squares</h1>
 <p>We will use the <code>lm()</code> function to fit OLS and adjust for covariates. This function offers an intuitive formula syntax. The <code>summary()</code> function summarizes a model fit.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(BW_205d <span class="op">~</span><span class="st"> </span>AgeDamCat <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(Sex), <span class="dt">data =</span> dat)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(BW_205d <span class="op">~</span><span class="st"> </span><span class="kw">factor</span>(AgeDamCat) <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(Sex), <span class="dt">data =</span> dat)
 <span class="kw">summary</span>(fit)
 <span class="kw">residuals</span>(fit)</code></pre></div>
 <div id="exercise-5" class="section level3">

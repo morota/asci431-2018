@@ -77,9 +77,9 @@ Nest("pilot", w = w1, x = factor(Sire), y = BW_205d, data = dat)
 length(unique(dat$Sire))
 ```
 
-Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.15. What is the required number of sires or sire groups? 
+Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.05. What is the required number of sires or sire groups? 
 ```{r, eval=FALSE}
-w2 <- 0.15
+w2 <- 0.05
 Nest("pilot", w = w2, x = factor(Sire), y = BW_205d, data = dat)
 ```
 

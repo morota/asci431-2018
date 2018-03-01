@@ -152,8 +152,8 @@ w1</code></pre></div>
 <p>So if we set the argument <code>w</code> equal to <code>w1</code>, the <code>Nest()</code> function produces a value that is very close to the number of unique sires in the dataset.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">Nest</span>(<span class="st">&quot;pilot&quot;</span>, <span class="dt">w =</span> w1, <span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)
 <span class="kw">length</span>(<span class="kw">unique</span>(dat<span class="op">$</span>Sire))</code></pre></div>
-<p>Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.15. What is the required number of sires or sire groups?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">w2 &lt;-<span class="st"> </span><span class="fl">0.15</span>
+<p>Now suppose we would like to obtain a more precise estimate of ICC, e.g., CIW=0.05. What is the required number of sires or sire groups?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">w2 &lt;-<span class="st"> </span><span class="fl">0.05</span>
 <span class="kw">Nest</span>(<span class="st">&quot;pilot&quot;</span>, <span class="dt">w =</span> w2, <span class="dt">x =</span> <span class="kw">factor</span>(Sire), <span class="dt">y =</span> BW_205d, <span class="dt">data =</span> dat)</code></pre></div>
 </div>
 </div>

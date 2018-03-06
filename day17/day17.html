@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+
+<title>Pedigree-based BLUP</title>
+
+<script src="day17_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day17_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day17_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day17_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day17_files/navigation-1.1/tabsets.js"></script>
+<script src="day17_files/navigation-1.1/codefolding.js"></script>
+<link href="day17_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day17_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day17_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day17_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">Pedigree-based BLUP</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">Pedigree-based BLUP</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#reading-r-object">Reading R object</a></li>
+      <li><a href="#statistical-model">Statistical model</a></li>
+      <li><a href="#incidence-matrix-x">Incidence matrix X</a></li>
+      <li><a href="#incidence-matrix-z">Incidence matrix Z</a></li>
+      <li><a href="#incidence-matrix-i">Incidence matrix I</a></li>
+      <li><a href="#variance-components-estimation-using-the-regress-package">Variance components estimation using the regress package</a></li>
+      <li><a href="#inverse-of-v">Inverse of V</a></li>
+      <li><a href="#ordinary-least-squares">Ordinary least squares</a></li>
+      <li><a href="#pblup-of-genetic-values">PBLUP of genetic values</a></li>
+      <li><a href="#save-as-r-object">Save as R object</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>We will learn how to connect phenotypes and pedigree using pedigree-based best linear unbiased prediction (PBLUP).</p>
+</div>
+<div id="reading-r-object" class="section level1">
+<h1>Reading R object</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function <code>load()</code> to load the numerator relationship matrix (<code>A.Rda</code>) we created in class (<a href="http://morotalab.org/asci431-2018/day06/day06.html">link1</a>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># A.Rda</span>
+<span class="kw">dim</span>(A)</code></pre></div>
+</div>
+<div id="statistical-model" class="section level1">
+<h1>Statistical model</h1>
+<p>The statistical model we fit is given by <span class="math display">\[
+\mathbf{y} = \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e},
+\]</span> where <span class="math inline">\(\mathbf{y}\)</span> is the vector of birth weights, <span class="math inline">\(\mathbf{X}\)</span> and <span class="math inline">\(\mathbf{Z}\)</span> are incident matrices for fixed and random effects, respectively, <span class="math inline">\(\mathbf{b}\)</span> is the vector of regression coefficients for fixed effects, <span class="math inline">\(\mathbf{u}\)</span> is the vector of regression coefficients for random genetic values, and <span class="math inline">\(\mathbf{e}\)</span> is the vector of residuals. Recall that BLUP of <span class="math inline">\(\mathbf{u}\)</span> is given by Henderson (1975) (<a href="https://www.jstor.org/stable/2529430">doi: 10.2307/2529430</a>) <span class="math display">\[
+\begin{align*}
+BLUP(\mathbf{u}) &amp;= E(\mathbf{u} | \mathbf{y}) \\
+&amp;= Cov(\mathbf{u}, \mathbf{y}&#39;) Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
+&amp;= \mathbf{A}\sigma^2_{A} \mathbf{Z}&#39;\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+\end{align*}
+\]</span> where <span class="math display">\[
+\begin{align*}
+\mathbf{V} &amp;= Var(\mathbf{y}) \\
+&amp;= \mathbf{Z}\mathbf{A}\sigma^2_A\mathbf{Z}&#39;  + \mathbf{I}\sigma^2_e
+\end{align*}
+\]</span></p>
+<p>We predict estimated breeding values (EBV) or genetic values <span class="math inline">\(\hat{\mathbf{u}}\)</span> in the following two steps.</p>
+<ul>
+<li>fit OLS to estimate fixed effects (<span class="math inline">\(\hat{\mathbf{b}}\)</span>)</li>
+<li>fit BLUP to obtain EBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>) condition on the estimated <span class="math inline">\(\hat{\mathbf{b}}\)</span></li>
+</ul>
+<p>Later we will discuss how to obtain <span class="math inline">\(\hat{\mathbf{b}}\)</span> and <span class="math inline">\(\hat{\mathbf{u}}\)</span> simultaneously.</p>
+</div>
+<div id="incidence-matrix-x" class="section level1">
+<h1>Incidence matrix X</h1>
+<p>We will now contruct each component one by one. First we will create the incidence matrix <span class="math inline">\(\mathbf{X}\)</span>. We first subset the variable <code>dat</code> by age of dams and sex of calves, and create a new variable <code>dat2</code>. The <code>model.matrix()</code> function returns the incidence matrix <span class="math inline">\(X\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat2 &lt;-<span class="st"> </span>dat[, <span class="kw">c</span>(<span class="st">&quot;AgeDam&quot;</span>, <span class="st">&quot;Sex&quot;</span>)]
+<span class="kw">head</span>(dat2)
+X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span>dat2<span class="op">$</span>AgeDam <span class="op">+</span><span class="st"> </span>dat2<span class="op">$</span>Sex)
+<span class="kw">dim</span>(X)
+<span class="kw">head</span>(X)
+<span class="kw">tail</span>(X)</code></pre></div>
+</div>
+<div id="incidence-matrix-z" class="section level1">
+<h1>Incidence matrix Z</h1>
+<p>Next we will create the incidence matrix <span class="math inline">\(\mathbf{Z}\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Z &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(A))
+<span class="kw">dim</span>(Z)
+<span class="kw">diag</span>(Z)</code></pre></div>
+</div>
+<div id="incidence-matrix-i" class="section level1">
+<h1>Incidence matrix I</h1>
+<p>The third incidence matrix we create is <span class="math inline">\(\mathbf{I}\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">I &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(A))
+<span class="kw">dim</span>(I)
+<span class="kw">diag</span>(I)</code></pre></div>
+</div>
+<div id="variance-components-estimation-using-the-regress-package" class="section level1">
+<h1>Variance components estimation using the regress package</h1>
+<p>The <code>regress()</code> function in the <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package fits a liner mixed model and estimate variance components (<span class="math inline">\(\sigma^2_A\)</span> and <span class="math inline">\(\sigma^2_e\)</span>) through a restricted maximum likelihood (REML). The variance-covariance structure of <span class="math inline">\(\mathbf{u}\)</span> is given by the numerator relationship matrix <span class="math inline">\(\mathbf{A}\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;regress&quot;</span>)
+<span class="kw">library</span>(regress)
+<span class="st">`</span><span class="dt">?</span><span class="st">`</span>(regress)
+
+y &lt;-<span class="st"> </span>dat<span class="op">$</span>BW_205d
+varcomp &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>A)
+<span class="kw">summary</span>(varcomp)
+varcomp<span class="op">$</span>sigma
+
+sigma2A &lt;-<span class="st"> </span>varcomp<span class="op">$</span>sigma[<span class="dv">1</span>]  <span class="co"># additive genetic variance</span>
+sigma2A
+sigma2e &lt;-<span class="st"> </span>varcomp<span class="op">$</span>sigma[<span class="dv">2</span>]  <span class="co"># residual variance </span>
+sigma2e</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>What is the estimate of heritability? Compare the estimate with the one we obtained from <a href="http://morotalab.org/asci431-2017/day10/day10.html">intraclass correlation</a> using the sire model.</p>
+</div>
+</div>
+<div id="inverse-of-v" class="section level1">
+<h1>Inverse of V</h1>
+<p>Here we compute the inverse of <span class="math inline">\(V\)</span> matrix. We will use 1) the multiplication operator <code>%*%</code> and 2) the function <code>solve()</code> to obtain the inverse of matrix.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">V &lt;-<span class="st"> </span>Z <span class="op">%*%</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">*</span><span class="st"> </span>sigma2A <span class="op">+</span><span class="st"> </span>I <span class="op">*</span><span class="st"> </span>sigma2e
+<span class="kw">dim</span>(V)
+Vinv &lt;-<span class="st"> </span><span class="kw">solve</span>(V)
+<span class="kw">dim</span>(Vinv)</code></pre></div>
+</div>
+<div id="ordinary-least-squares" class="section level1">
+<h1>Ordinary least squares</h1>
+<p>We will use the <code>lm()</code> function to fit OLS and estimate fixed effect coefficients. This function offers an intuitive formula syntax. The <code>summary()</code> function summarizes a model fit.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(BW_205d <span class="op">~</span><span class="st"> </span>AgeDam <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(Sex), <span class="dt">data =</span> dat)
+<span class="kw">summary</span>(fit)
+<span class="kw">residuals</span>(fit)</code></pre></div>
+</div>
+<div id="pblup-of-genetic-values" class="section level1">
+<h1>PBLUP of genetic values</h1>
+<p>Now we compute EBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">uhatA &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">predict</span>(fit)))
+uhatA2 &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(X <span class="op">%*%</span><span class="st"> </span>fit<span class="op">$</span>coefficients))  <span class="co"># alternative</span>
+<span class="kw">table</span>(uhatA <span class="op">==</span><span class="st"> </span>uhatA2)
+<span class="kw">head</span>(uhatA)
+<span class="kw">tail</span>(uhatA)</code></pre></div>
+<p>Let’s plot a histogram of EBV.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(uhatA, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Estimated breeding values&quot;</span>)</code></pre></div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>Create a scatter plot of EBV vs. observed values. Interpret the result.</p>
+</div>
+<div id="exercise-3" class="section level3">
+<h3>Exercise 3</h3>
+<p>Which individual has the highest EBV? Which individual has the lowest EBV? Use the <code>which.max()</code> and <code>which.min()</code> functions.</p>
+</div>
+<div id="exercise-4" class="section level3">
+<h3>Exercise 4</h3>
+<p>Rank animals based on their EBV. Show the top six animal IDs and their EBV. Use the <code>order()</code> function.</p>
+</div>
+<div id="exercise-5" class="section level3">
+<h3>Exercise 5</h3>
+<p>If you are going to select only top 10% of animals, which animals would you pick?</p>
+</div>
+</div>
+<div id="save-as-r-object" class="section level1">
+<h1>Save as R object</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(uhatA, h2A, sigma2A, sigma2e, <span class="dt">file =</span> <span class="st">&quot;day17.Rda&quot;</span>)</code></pre></div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 6, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

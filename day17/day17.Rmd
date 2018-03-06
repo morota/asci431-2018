@@ -1,0 +1,200 @@
+---
+title: "Pedigree-based BLUP"
+author: "Gota Morota"
+date: "March 6, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to connect phenotypes and pedigree using pedigree-based best linear unbiased prediction (PBLUP). 
+
+# Reading R object
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function `load()` to load the numerator relationship matrix (`A.Rda`) we created in class ([link1](http://morotalab.org/asci431-2018/day06/day06.html)).
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+
+load(file.choose()) # A.Rda
+dim(A)
+```
+
+# Statistical model 
+The statistical model we fit is given by 
+$$
+\mathbf{y} = \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e},
+$$
+where $\mathbf{y}$ is the vector of birth weights,  $\mathbf{X}$ and $\mathbf{Z}$ are incident matrices for fixed and random effects, respectively, $\mathbf{b}$ is the vector of regression coefficients for fixed effects, $\mathbf{u}$ is the vector of regression coefficients for random genetic values, and $\mathbf{e}$ is the vector of residuals. 
+Recall that BLUP of $\mathbf{u}$ is given by Henderson (1975) ([doi: 10.2307/2529430](https://www.jstor.org/stable/2529430))
+$$
+\begin{align*}
+BLUP(\mathbf{u}) &= E(\mathbf{u} | \mathbf{y}) \\
+&= Cov(\mathbf{u}, \mathbf{y}') Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
+&= \mathbf{A}\sigma^2_{A} \mathbf{Z}'\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+\end{align*}
+$$
+where 
+$$
+\begin{align*}
+\mathbf{V} &= Var(\mathbf{y}) \\
+&= \mathbf{Z}\mathbf{A}\sigma^2_A\mathbf{Z}'  + \mathbf{I}\sigma^2_e
+\end{align*}
+$$
+
+We predict estimated breeding values (EBV) or genetic values $\hat{\mathbf{u}}$ in the following two steps. 
+
+* fit OLS to estimate fixed effects ($\hat{\mathbf{b}}$)
+* fit BLUP to obtain EBV ($\hat{\mathbf{u}}$) condition on the estimated $\hat{\mathbf{b}}$
+
+Later we will discuss how to obtain $\hat{\mathbf{b}}$ and $\hat{\mathbf{u}}$ simultaneously. 
+
+# Incidence matrix X
+We will now contruct each component one by one. First we will create the incidence matrix $\mathbf{X}$. 
+We first subset the variable `dat` by age of dams and sex of calves, and create a new variable `dat2`. 
+The `model.matrix()` function returns the incidence matrix $X$. 
+```{r, eval=FALSE}
+dat2 <- dat[, c("AgeDam", "Sex")]
+head(dat2)
+X <- model.matrix(~ dat2$AgeDam + dat2$Sex)
+dim(X)
+head(X)
+tail(X)
+```
+
+# Incidence matrix Z
+Next we will create the incidence matrix $\mathbf{Z}$. 
+```{r, eval=FALSE}
+Z <- diag(nrow(A))
+dim(Z)
+diag(Z)
+```
+
+# Incidence matrix I
+The third incidence matrix we create is $\mathbf{I}$. 
+```{r, eval=FALSE}
+I <- diag(nrow(A))
+dim(I)
+diag(I)
+```
+
+# Variance components estimation using the regress package
+The `regress()` function in the [regress](https://cran.r-project.org/web/packages/regress/index.html) package fits a liner mixed model and estimate variance components ($\sigma^2_A$ and $\sigma^2_e$) through a restricted maximum likelihood (REML). The variance-covariance structure of $\mathbf{u}$ is given by the numerator relationship matrix $\mathbf{A}$. 
+```{r, eval=FALSE}
+install.packages("regress")
+library(regress)
+`?`(regress)
+
+y <- dat$BW_205d
+varcomp <- regress(y ~ -1 + X, ~A)
+summary(varcomp)
+varcomp$sigma
+
+sigma2A <- varcomp$sigma[1] # additive genetic variance
+sigma2A
+sigma2e <- varcomp$sigma[2] # residual variance 
+sigma2e
+```
+
+### Exercise 1
+What is the estimate of heritability? Compare the estimate with the one we obtained from [intraclass correlation](http://morotalab.org/asci431-2017/day10/day10.html) using the sire model. 
+```{r, eval=FALSE, echo=FALSE}
+h2A <- sigma2A / (sigma2A + sigma2e)
+h2A
+```
+
+# Inverse of V
+Here we compute the inverse of $V$ matrix. We will use 1) the multiplication operator `%*%` and 2) the function `solve()` to obtain the inverse of matrix. 
+```{r, eval=FALSE}
+V <- Z %*% A %*% t(Z) * sigma2A + I * sigma2e
+dim(V)
+Vinv <- solve(V) 
+dim(Vinv)
+```
+
+# Ordinary least squares
+We will use the `lm()` function to fit OLS and estimate fixed effect coefficients. This function offers an intuitive formula syntax. The `summary()` function summarizes a model fit. 
+```{r, eval=FALSE}
+fit <- lm(BW_205d ~ AgeDam + factor(Sex), data=dat)
+summary(fit)
+residuals(fit)
+```
+
+# PBLUP of genetic values
+Now we compute EBV ($\hat{\mathbf{u}}$). 
+```{r, eval=FALSE}
+uhatA <- sigma2A * A %*%  t(Z) %*% Vinv %*%  (matrix(y) - matrix(predict(fit)))
+uhatA2 <- sigma2A * A %*%  t(Z) %*% Vinv %*%  (matrix(y) - matrix(X%*% fit$coefficients)) # alternative
+table(uhatA == uhatA2)
+head(uhatA)
+tail(uhatA)
+```
+
+Let's plot a histogram of EBV. 
+```{r, eval=FALSE}
+hist(uhatA, col = "lightblue", main="Histogram", xlab="Estimated breeding values")
+```
+
+### Exercise 2
+Create a scatter plot of EBV vs. observed values. Interpret the result. 
+```{r, eval=FALSE, echo=FALSE}
+plot(uhatA, y, xlab="Estimated breeding values", ylab="Observed values")
+abline(lm(y ~ uhatA), lwd=3, col="red") 
+```
+
+### Exercise 3
+Which individual has the highest EBV? Which individual has the lowest EBV? Use the `which.max()` and `which.min()` functions.
+```{r, eval=FALSE, echo=FALSE}
+which.max(uhatA)
+which.min(uhatA)
+```
+
+
+### Exercise 4
+Rank animals based on their EBV. Show the top six animal IDs and their EBV. Use the `order()` function.
+```{r, eval=FALSE, echo=FALSE}
+uhatA.rank <- uhatA[order(uhatA, decreasing = TRUE)]
+head(uhatA.rank)
+uhatA.rank.names <- dat$Animal[order(uhatA, decreasing = TRUE)]
+head(uhatA.rank.names)
+```
+
+### Exercise 5
+If you are going to select only top 10% of animals, which animals would you pick? 
+```{r, eval=FALSE, echo=FALSE}
+1004 * 0.1
+uhatA.rank[1:100]
+uhatA.rank.names[1:100]
+
+hist(uhatA, col = "lightblue", main="Histogram", xlab="Estimated breeding values")
+abline(v=uhatA.rank[100], lwd=3, col="red")
+```
+
+
+# Save as R object
+```{r, eval=FALSE}
+save(uhatA, h2A, sigma2A, sigma2e, file="day17.Rda")
+```
+
+
+

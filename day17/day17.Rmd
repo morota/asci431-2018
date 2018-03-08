@@ -117,7 +117,7 @@ sigma2e
 ```
 
 ### Exercise 1
-What is the estimate of heritability? Compare the estimate with the one we obtained from [intraclass correlation](http://morotalab.org/asci431-2017/day10/day10.html) using the sire model. 
+What is the estimate of heritability? Compare the estimate with the one we obtained from [intraclass correlation](http://morotalab.org/asci431-2018/day13/day13.html) using the sire model. 
 ```{r, eval=FALSE, echo=FALSE}
 h2A <- sigma2A / (sigma2A + sigma2e)
 h2A

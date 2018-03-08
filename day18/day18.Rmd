@@ -1,0 +1,255 @@
+---
+title: "Genomic BLUP"
+author: "Gota Morota"
+date: "March 8, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to connect phenotypes and genomics using genomic best linear unbiased prediction (GBLUP). 
+
+# Load R objects
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function `load()` to load the SNP matrix  ([W.Rda](http://morotalab.org/asci431-2018/day04/day04.html)), the numerator relationship matrix ([A.Rda](http://morotalab.org/asci431-2018/day06/day06.html)) and the results from pedigree-based BLUP ([day17.Rda](http://morotalab.org/asci431-2018/day17/day17.html)) we created in class.
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+
+
+load(file.choose()) # A.Rda
+dim(A)
+
+load(file.choose()) # W.Rda
+dim(W)
+
+load(file.choose())  # day17.Rda
+```
+
+# Statistical model 
+The statistical model we will fit is given by 
+$$
+\mathbf{y} = \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e},
+$$
+where $\mathbf{y}$ is the vector of birth weights,  $\mathbf{X}$ and $\mathbf{Z}$ are incident matrices for fixed and random effects, respectively, $\mathbf{b}$ is the vector of regression coefficients for fixed effects, $\mathbf{u}$ is the vector of regression coefficients for random genetic values, and $\mathbf{e}$ is the vector of residuals. 
+Recall that BLUP of $\mathbf{u}$ is given by Henderson (1975) ([doi: 10.2307/2529430](https://www.jstor.org/stable/2529430))
+$$
+\begin{align*}
+BLUP(\mathbf{u}) &= E(\mathbf{u} | \mathbf{y}) \\
+&= Cov(\mathbf{u}, \mathbf{y}') Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
+&= \mathbf{G}\sigma^2_{G} \mathbf{Z}'\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+\end{align*}
+$$
+where 
+$$
+\begin{align*}
+\mathbf{V} &= Var(\mathbf{y}) \\
+&= \mathbf{Z}\mathbf{G}\sigma^2_G\mathbf{Z}'  + \mathbf{I}\sigma^2_e
+\end{align*}
+$$
+
+We predict **genomic estimated breeding values** (GEBV) or genetic values $\hat{\mathbf{u}}$ in the following two steps. 
+
+* fit OLS to estimate fixed effects ($\hat{\mathbf{b}}$)
+* fit BLUP to obtain GEBV ($\hat{\mathbf{u}}$) condition on the estimated $\hat{\mathbf{b}}$
+
+Later we will discuss how to obtain $\hat{\mathbf{b}}$ and $\hat{\mathbf{u}}$ simultaneously. 
+
+# Computing a genomic relationship matrix (G)
+We will compute the $\mathbf{G}$ matrix defined by VanRaden (2008). The function `computeG()` accepts two arguments: 1) a genotype matrix and 2) a cutoff point for minor allele frequency (MAF). 
+```{r, eval=FALSE}
+computeG <- function(W, maf){
+  p <- colMeans(W)/2
+  maf2 <- pmin(p, 1-p)
+  index <- which(maf2 < maf)
+  W2 <- W[, -index]
+  p2 <- p[-index]
+  Wc <- scale(W2, center = TRUE, scale=FALSE)
+  G <- tcrossprod(Wc) / (2*sum(p2* (1-p2)))
+  return(G)
+}
+
+G <- computeG(W, maf=0.05)
+dim(G)
+```
+
+### Exercise 1
+Create a boxplot comparing elements of the numerator relationship matrix and geomic relationship matrix. What is the correlation between the pedigree relationships and geomic relationships?
+```{r, eval=FALSE, echo=FALSE}
+boxplot(A[lower.tri(A, diag = TRUE)], G[lower.tri(G, diag = TRUE)],  names = c("A", "G"),  ylab="Relationships")
+
+cor(A[lower.tri(A, diag = TRUE)], G[lower.tri(G, diag = TRUE)])
+```
+
+### Exercise 2
+Repeat Exercise 1 by changing the MAF threshold equal to 0.1. Also, what is the correlation between the two $\mathbf{G}$ matrices?
+```{r, eval=FALSE, echo=FALSE}
+G0.1 <- computeG(W, maf=0.1)
+
+boxplot(A[lower.tri(A, diag = TRUE)],   G[lower.tri(G, diag = TRUE)], G0.1[lower.tri(G0.1, diag = TRUE)], names = c("A", "G0.05", "G0.1"),  ylab="Relationships")
+
+cor(A[lower.tri(A, diag = TRUE)], G0.1[lower.tri(G0.1, diag = TRUE)])
+
+cor(G[lower.tri(G, diag = TRUE)], G0.1[lower.tri(G0.1, diag = TRUE)])
+```
+
+
+# Incidence matrix X
+We will now contruct each component one by one. First we will create the incidence matrix $\mathbf{X}$. 
+We first subset the variable `dat` by age of dams and sex of calves, and create a new variable `dat2`. 
+The `model.matrix()` function returns the incidence matrix $X$. 
+```{r, eval=FALSE}
+dat2 <- dat[, c("AgeDam", "Sex")]
+head(dat2)
+X <- model.matrix(~ dat2$AgeDam + dat2$Sex)
+dim(X)
+head(X)
+tail(X)
+```
+
+# Incidence matrix Z
+Next we will create the incidence matrix $\mathbf{Z}$. 
+```{r, eval=FALSE}
+Z <- diag(nrow(G))
+dim(Z)
+diag(Z)
+```
+
+# Incidence matrix I
+The third incidence matrix we create is $\mathbf{I}$. 
+```{r, eval=FALSE}
+I <- diag(nrow(G))
+dim(I)
+diag(I)
+```
+
+
+# Variance components estimation using the regress package
+The `regress()` function in the [regress](https://cran.r-project.org/web/packages/regress/index.html) package fits a liner mixed model and estimate variance components ($\sigma^2_G$ and $\sigma^2_e$) through a restricted maximum likelihood (REML). The variance-covariance structure of $\mathbf{u}$ is given by the genomic relationship matrix $\mathbf{G}$. 
+```{r, eval=FALSE}
+install.packages("regress")
+library(regress)
+`?`(regress)
+
+y <- dat$BW_205d
+varcomp <- regress(y ~ -1 + X, ~G)
+summary(varcomp)
+varcomp$sigma
+
+sigma2G <- varcomp$sigma[1] # additive genetic variance
+sigma2G
+sigma2e <- varcomp$sigma[2] # residual variance 
+sigma2e
+```
+
+### Exercise 3
+What is the estimate of genomic heritability? Compare the estimate with the one we obtained from the pedigree relationship matrix.
+```{r, eval=FALSE, echo=FALSE}
+# genomic heritability
+h2G <- sigma2G / (sigma2G + sigma2e)
+h2G
+
+
+# heritability
+h2A
+
+
+```
+
+# Inverse of V
+Here we compute the inverse of $V$ matrix. We will use 1) the multiplication operator `%*%` and 2) the function `solve()` to obtain the inverse of matrix. 
+```{r, eval=FALSE}
+V <- Z %*% G %*% t(Z) * sigma2G + I * sigma2e
+dim(V)
+Vinv <- solve(V) 
+dim(Vinv)
+```
+
+
+# Ordinary least squares
+We will use the `lm()` function to fit OLS and estimate fixed effect coefficients. This function offers an intuitive formula syntax. The `summary()` function summarizes a model fit. 
+```{r, eval=FALSE}
+fit <- lm(BW_205d ~ AgeDam + factor(Sex), data=dat)
+summary(fit)
+residuals(fit)
+```
+
+
+# GBLUP of genetic values
+Now we compute GEBV ($\hat{\mathbf{u}}$). 
+```{r, eval=FALSE}
+uhatG <- sigma2G * G %*%  t(Z) %*% Vinv %*%  (matrix(y) - matrix(predict(fit)))
+uhatG2 <- sigma2G * G %*%  t(Z) %*% Vinv %*%  (matrix(y) - matrix(X%*% fit$coefficients)) # alternative
+table(uhatG == uhatG2)
+head(uhatG)
+tail(uhatG)
+```
+
+Let's plot a histogram of GEBV. 
+```{r, eval=FALSE}
+hist(uhatG, col = "lightblue", main="Histogram", xlab="Genomic estimated breeding values")
+```
+
+### Exercise 4
+Create a scatter plot of GEBV vs. observed values. Interpret the result. 
+```{r, eval=FALSE, echo=FALSE}
+plot(uhatG, y, xlab="Genomic estimated breeding values", ylab="Observed values")
+abline(lm(y ~ uhatG), lwd=3, col="red") 
+```
+
+### Exercise 5
+Which individual has the highest GEBV? Which individual has the lowest GEBV? Use the `which.max()` and `which.min()` functions.
+```{r, eval=FALSE, echo=FALSE}
+which.max(uhatG)
+which.min(uhatG)
+```
+
+
+### Exercise 6
+Rank animals based on their GEBV. Show the top six animal IDs and their GEBV. Use the `order()` function.
+```{r, eval=FALSE, echo=FALSE}
+uhatG.rank <- uhatG[order(uhatG, decreasing = TRUE)]
+head(uhatG.rank)
+uhatG.rank.names <- dat$Animal[order(uhatG, decreasing = TRUE)]
+head(uhatG.rank.names)
+```
+
+### Exercise 7
+Create a scatter plot of EBV vs. GEBV. Compute Spearman's rank correlation coefficient. 
+```{r, eval=FALSE, echo=FALSE}
+plot(uhatG, uhatA, xlab="Genomic estimated breeding values", ylab="Estimated breeding values")
+abline(lm(uhatA ~ uhatG), lwd=3, col="red") 
+
+cor(uhatG, uhatA, method = "spearman")
+```
+
+
+
+# Save as R objects
+```{r, eval=FALSE}
+save(uhatG, h2G, sigma2G, file="day18.Rda")
+save(G, file="G.Rda")
+```
+
+
+

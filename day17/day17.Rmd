@@ -193,7 +193,7 @@ abline(v=uhatA.rank[100], lwd=3, col="red")
 
 # Save as R object
 ```{r, eval=FALSE}
-save(uhatA, h2A, sigma2A, sigma2e, file="day17.Rda")
+save(uhatA, h2A, sigma2A, file="day17.Rda")
 ```
 
 

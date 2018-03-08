@@ -11,19 +11,19 @@
 <meta name="author" content="Gota Morota" />
 
 
-<title>Pedigree-based BLUP</title>
+<title>Genomic BLUP</title>
 
-<script src="day17_files/jquery-1.11.3/jquery.min.js"></script>
+<script src="day18_files/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="day17_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
-<script src="day17_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
-<script src="day17_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<script src="day17_files/navigation-1.1/tabsets.js"></script>
-<script src="day17_files/navigation-1.1/codefolding.js"></script>
-<link href="day17_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
-<script src="day17_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
-<link href="day17_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
-<script src="day17_files/readthedown-0.1/readthedown.js"></script>
+<link href="day18_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day18_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day18_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day18_files/navigation-1.1/tabsets.js"></script>
+<script src="day18_files/navigation-1.1/codefolding.js"></script>
+<link href="day18_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day18_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day18_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day18_files/readthedown-0.1/readthedown.js"></script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -91,25 +91,26 @@ $(document).ready(function () {
 
 
 <div id="header">
-<h1 class="title">Pedigree-based BLUP</h1>
+<h1 class="title">Genomic BLUP</h1>
 </div>
 
 
 <div id="table-of-contents">
-    <h2><a href="#content">Pedigree-based BLUP</a></h2>
+    <h2><a href="#content">Genomic BLUP</a></h2>
     <div id="text-table-of-contents">
       <ul>
       <li><a href="#overview">Overview</a></li>
-      <li><a href="#reading-r-object">Reading R object</a></li>
+      <li><a href="#load-r-objects">Load R objects</a></li>
       <li><a href="#statistical-model">Statistical model</a></li>
+      <li><a href="#computing-a-genomic-relationship-matrix-g">Computing a genomic relationship matrix (G)</a></li>
       <li><a href="#incidence-matrix-x">Incidence matrix X</a></li>
       <li><a href="#incidence-matrix-z">Incidence matrix Z</a></li>
       <li><a href="#incidence-matrix-i">Incidence matrix I</a></li>
       <li><a href="#variance-components-estimation-using-the-regress-package">Variance components estimation using the regress package</a></li>
       <li><a href="#inverse-of-v">Inverse of V</a></li>
       <li><a href="#ordinary-least-squares">Ordinary least squares</a></li>
-      <li><a href="#pblup-of-genetic-values">PBLUP of genetic values</a></li>
-      <li><a href="#save-as-r-object">Save as R object</a></li>
+      <li><a href="#gblup-of-genetic-values">GBLUP of genetic values</a></li>
+      <li><a href="#save-as-r-objects">Save as R objects</a></li>
       </ul>
     </div>
 </div>
@@ -117,41 +118,72 @@ $(document).ready(function () {
 <div id="main">
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>We will learn how to connect phenotypes and pedigree using pedigree-based best linear unbiased prediction (PBLUP).</p>
+<p>We will learn how to connect phenotypes and genomics using genomic best linear unbiased prediction (GBLUP).</p>
 </div>
-<div id="reading-r-object" class="section level1">
-<h1>Reading R object</h1>
-<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function <code>load()</code> to load the numerator relationship matrix (<code>A.Rda</code>) we created in class (<a href="http://morotalab.org/asci431-2018/day06/day06.html">link1</a>).</p>
+<div id="load-r-objects" class="section level1">
+<h1>Load R objects</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function <code>load()</code> to load the SNP matrix (<a href="http://morotalab.org/asci431-2018/day04/day04.html">W.Rda</a>), the numerator relationship matrix (<a href="http://morotalab.org/asci431-2018/day06/day06.html">A.Rda</a>) and the results from pedigree-based BLUP (<a href="http://morotalab.org/asci431-2018/day17/day17.html">day17.Rda</a>) we created in class.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
 dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
 <span class="kw">dim</span>(dat)
 <span class="kw">head</span>(dat)
 
+
 <span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># A.Rda</span>
-<span class="kw">dim</span>(A)</code></pre></div>
+<span class="kw">dim</span>(A)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># W.Rda</span>
+<span class="kw">dim</span>(W)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># day17.Rda</span></code></pre></div>
 </div>
 <div id="statistical-model" class="section level1">
 <h1>Statistical model</h1>
-<p>The statistical model we fit is given by <span class="math display">\[
+<p>The statistical model we will fit is given by <span class="math display">\[
 \mathbf{y} = \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e},
 \]</span> where <span class="math inline">\(\mathbf{y}\)</span> is the vector of birth weights, <span class="math inline">\(\mathbf{X}\)</span> and <span class="math inline">\(\mathbf{Z}\)</span> are incident matrices for fixed and random effects, respectively, <span class="math inline">\(\mathbf{b}\)</span> is the vector of regression coefficients for fixed effects, <span class="math inline">\(\mathbf{u}\)</span> is the vector of regression coefficients for random genetic values, and <span class="math inline">\(\mathbf{e}\)</span> is the vector of residuals. Recall that BLUP of <span class="math inline">\(\mathbf{u}\)</span> is given by Henderson (1975) (<a href="https://www.jstor.org/stable/2529430">doi: 10.2307/2529430</a>) <span class="math display">\[
 \begin{align*}
 BLUP(\mathbf{u}) &amp;= E(\mathbf{u} | \mathbf{y}) \\
 &amp;= Cov(\mathbf{u}, \mathbf{y}&#39;) Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
-&amp;= \mathbf{A}\sigma^2_{A} \mathbf{Z}&#39;\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+&amp;= \mathbf{G}\sigma^2_{G} \mathbf{Z}&#39;\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
 \end{align*}
 \]</span> where <span class="math display">\[
 \begin{align*}
 \mathbf{V} &amp;= Var(\mathbf{y}) \\
-&amp;= \mathbf{Z}\mathbf{A}\sigma^2_A\mathbf{Z}&#39;  + \mathbf{I}\sigma^2_e
+&amp;= \mathbf{Z}\mathbf{G}\sigma^2_G\mathbf{Z}&#39;  + \mathbf{I}\sigma^2_e
 \end{align*}
 \]</span></p>
-<p>We predict estimated breeding values (EBV) or genetic values <span class="math inline">\(\hat{\mathbf{u}}\)</span> in the following two steps.</p>
+<p>We predict <strong>genomic estimated breeding values</strong> (GEBV) or genetic values <span class="math inline">\(\hat{\mathbf{u}}\)</span> in the following two steps.</p>
 <ul>
 <li>fit OLS to estimate fixed effects (<span class="math inline">\(\hat{\mathbf{b}}\)</span>)</li>
-<li>fit BLUP to obtain EBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>) condition on the estimated <span class="math inline">\(\hat{\mathbf{b}}\)</span></li>
+<li>fit BLUP to obtain GEBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>) condition on the estimated <span class="math inline">\(\hat{\mathbf{b}}\)</span></li>
 </ul>
 <p>Later we will discuss how to obtain <span class="math inline">\(\hat{\mathbf{b}}\)</span> and <span class="math inline">\(\hat{\mathbf{u}}\)</span> simultaneously.</p>
+</div>
+<div id="computing-a-genomic-relationship-matrix-g" class="section level1">
+<h1>Computing a genomic relationship matrix (G)</h1>
+<p>We will compute the <span class="math inline">\(\mathbf{G}\)</span> matrix defined by VanRaden (2008). The function <code>computeG()</code> accepts two arguments: 1) a genotype matrix and 2) a cutoff point for minor allele frequency (MAF).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">computeG &lt;-<span class="st"> </span><span class="cf">function</span>(W, maf) {
+    p &lt;-<span class="st"> </span><span class="kw">colMeans</span>(W)<span class="op">/</span><span class="dv">2</span>
+    maf2 &lt;-<span class="st"> </span><span class="kw">pmin</span>(p, <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p)
+    index &lt;-<span class="st"> </span><span class="kw">which</span>(maf2 <span class="op">&lt;</span><span class="st"> </span>maf)
+    W2 &lt;-<span class="st"> </span>W[, <span class="op">-</span>index]
+    p2 &lt;-<span class="st"> </span>p[<span class="op">-</span>index]
+    Wc &lt;-<span class="st"> </span><span class="kw">scale</span>(W2, <span class="dt">center =</span> <span class="ot">TRUE</span>, <span class="dt">scale =</span> <span class="ot">FALSE</span>)
+    G &lt;-<span class="st"> </span><span class="kw">tcrossprod</span>(Wc)<span class="op">/</span>(<span class="dv">2</span> <span class="op">*</span><span class="st"> </span><span class="kw">sum</span>(p2 <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p2)))
+    <span class="kw">return</span>(G)
+}
+
+G &lt;-<span class="st"> </span><span class="kw">computeG</span>(W, <span class="dt">maf =</span> <span class="fl">0.05</span>)
+<span class="kw">dim</span>(G)</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>Create a boxplot comparing elements of the numerator relationship matrix and geomic relationship matrix. What is the correlation between the pedigree relationships and geomic relationships?</p>
+</div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>Repeat Exercise 1 by changing the MAF threshold equal to 0.1. Also, what is the correlation between the two <span class="math inline">\(\mathbf{G}\)</span> matrices?</p>
+</div>
 </div>
 <div id="incidence-matrix-x" class="section level1">
 <h1>Incidence matrix X</h1>
@@ -166,42 +198,42 @@ X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class
 <div id="incidence-matrix-z" class="section level1">
 <h1>Incidence matrix Z</h1>
 <p>Next we will create the incidence matrix <span class="math inline">\(\mathbf{Z}\)</span>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Z &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(A))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Z &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(G))
 <span class="kw">dim</span>(Z)
 <span class="kw">diag</span>(Z)</code></pre></div>
 </div>
 <div id="incidence-matrix-i" class="section level1">
 <h1>Incidence matrix I</h1>
 <p>The third incidence matrix we create is <span class="math inline">\(\mathbf{I}\)</span>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">I &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(A))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">I &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(G))
 <span class="kw">dim</span>(I)
 <span class="kw">diag</span>(I)</code></pre></div>
 </div>
 <div id="variance-components-estimation-using-the-regress-package" class="section level1">
 <h1>Variance components estimation using the regress package</h1>
-<p>The <code>regress()</code> function in the <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package fits a liner mixed model and estimate variance components (<span class="math inline">\(\sigma^2_A\)</span> and <span class="math inline">\(\sigma^2_e\)</span>) through a restricted maximum likelihood (REML). The variance-covariance structure of <span class="math inline">\(\mathbf{u}\)</span> is given by the numerator relationship matrix <span class="math inline">\(\mathbf{A}\)</span>.</p>
+<p>The <code>regress()</code> function in the <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package fits a liner mixed model and estimate variance components (<span class="math inline">\(\sigma^2_G\)</span> and <span class="math inline">\(\sigma^2_e\)</span>) through a restricted maximum likelihood (REML). The variance-covariance structure of <span class="math inline">\(\mathbf{u}\)</span> is given by the genomic relationship matrix <span class="math inline">\(\mathbf{G}\)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">install.packages</span>(<span class="st">&quot;regress&quot;</span>)
 <span class="kw">library</span>(regress)
 <span class="st">`</span><span class="dt">?</span><span class="st">`</span>(regress)
 
 y &lt;-<span class="st"> </span>dat<span class="op">$</span>BW_205d
-varcomp &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>A)
+varcomp &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>G)
 <span class="kw">summary</span>(varcomp)
 varcomp<span class="op">$</span>sigma
 
-sigma2A &lt;-<span class="st"> </span>varcomp<span class="op">$</span>sigma[<span class="dv">1</span>]  <span class="co"># additive genetic variance</span>
-sigma2A
+sigma2G &lt;-<span class="st"> </span>varcomp<span class="op">$</span>sigma[<span class="dv">1</span>]  <span class="co"># additive genetic variance</span>
+sigma2G
 sigma2e &lt;-<span class="st"> </span>varcomp<span class="op">$</span>sigma[<span class="dv">2</span>]  <span class="co"># residual variance </span>
 sigma2e</code></pre></div>
-<div id="exercise-1" class="section level3">
-<h3>Exercise 1</h3>
-<p>What is the estimate of heritability? Compare the estimate with the one we obtained from <a href="http://morotalab.org/asci431-2017/day10/day10.html">intraclass correlation</a> using the sire model.</p>
+<div id="exercise-3" class="section level3">
+<h3>Exercise 3</h3>
+<p>What is the estimate of genomic heritability? Compare the estimate with the one we obtained from the pedigree relationship matrix.</p>
 </div>
 </div>
 <div id="inverse-of-v" class="section level1">
 <h1>Inverse of V</h1>
 <p>Here we compute the inverse of <span class="math inline">\(V\)</span> matrix. We will use 1) the multiplication operator <code>%*%</code> and 2) the function <code>solve()</code> to obtain the inverse of matrix.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">V &lt;-<span class="st"> </span>Z <span class="op">%*%</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">*</span><span class="st"> </span>sigma2A <span class="op">+</span><span class="st"> </span>I <span class="op">*</span><span class="st"> </span>sigma2e
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">V &lt;-<span class="st"> </span>Z <span class="op">%*%</span><span class="st"> </span>G <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">*</span><span class="st"> </span>sigma2G <span class="op">+</span><span class="st"> </span>I <span class="op">*</span><span class="st"> </span>sigma2e
 <span class="kw">dim</span>(V)
 Vinv &lt;-<span class="st"> </span><span class="kw">solve</span>(V)
 <span class="kw">dim</span>(Vinv)</code></pre></div>
@@ -213,36 +245,37 @@ Vinv &lt;-<span class="st"> </span><span class="kw">solve</span>(V)
 <span class="kw">summary</span>(fit)
 <span class="kw">residuals</span>(fit)</code></pre></div>
 </div>
-<div id="pblup-of-genetic-values" class="section level1">
-<h1>PBLUP of genetic values</h1>
-<p>Now we compute EBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">uhatA &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">predict</span>(fit)))
-uhatA2 &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span class="st"> </span>A <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(X <span class="op">%*%</span><span class="st"> </span>fit<span class="op">$</span>coefficients))  <span class="co"># alternative</span>
-<span class="kw">table</span>(uhatA <span class="op">==</span><span class="st"> </span>uhatA2)
-<span class="kw">head</span>(uhatA)
-<span class="kw">tail</span>(uhatA)</code></pre></div>
-<p>Let’s plot a histogram of EBV.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(uhatA, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Estimated breeding values&quot;</span>)</code></pre></div>
-<div id="exercise-2" class="section level3">
-<h3>Exercise 2</h3>
-<p>Create a scatter plot of EBV vs. observed values. Interpret the result.</p>
-</div>
-<div id="exercise-3" class="section level3">
-<h3>Exercise 3</h3>
-<p>Which individual has the highest EBV? Which individual has the lowest EBV? Use the <code>which.max()</code> and <code>which.min()</code> functions.</p>
-</div>
+<div id="gblup-of-genetic-values" class="section level1">
+<h1>GBLUP of genetic values</h1>
+<p>Now we compute GEBV (<span class="math inline">\(\hat{\mathbf{u}}\)</span>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">uhatG &lt;-<span class="st"> </span>sigma2G <span class="op">*</span><span class="st"> </span>G <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">predict</span>(fit)))
+uhatG2 &lt;-<span class="st"> </span>sigma2G <span class="op">*</span><span class="st"> </span>G <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(Z) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(X <span class="op">%*%</span><span class="st"> </span>fit<span class="op">$</span>coefficients))  <span class="co"># alternative</span>
+<span class="kw">table</span>(uhatG <span class="op">==</span><span class="st"> </span>uhatG2)
+<span class="kw">head</span>(uhatG)
+<span class="kw">tail</span>(uhatG)</code></pre></div>
+<p>Let’s plot a histogram of GEBV.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">hist</span>(uhatG, <span class="dt">col =</span> <span class="st">&quot;lightblue&quot;</span>, <span class="dt">main =</span> <span class="st">&quot;Histogram&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Genomic estimated breeding values&quot;</span>)</code></pre></div>
 <div id="exercise-4" class="section level3">
 <h3>Exercise 4</h3>
-<p>Rank animals based on their EBV. Show the top six animal IDs and their EBV. Use the <code>order()</code> function.</p>
+<p>Create a scatter plot of GEBV vs. observed values. Interpret the result.</p>
 </div>
 <div id="exercise-5" class="section level3">
 <h3>Exercise 5</h3>
-<p>If you are going to select only top 10% of animals, which animals would you pick?</p>
+<p>Which individual has the highest GEBV? Which individual has the lowest GEBV? Use the <code>which.max()</code> and <code>which.min()</code> functions.</p>
+</div>
+<div id="exercise-6" class="section level3">
+<h3>Exercise 6</h3>
+<p>Rank animals based on their GEBV. Show the top six animal IDs and their GEBV. Use the <code>order()</code> function.</p>
+</div>
+<div id="exercise-7" class="section level3">
+<h3>Exercise 7</h3>
+<p>Create a scatter plot of EBV vs. GEBV. Compute Spearman’s rank correlation coefficient.</p>
 </div>
 </div>
-<div id="save-as-r-object" class="section level1">
-<h1>Save as R object</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(uhatA, h2A, sigma2A, <span class="dt">file =</span> <span class="st">&quot;day17.Rda&quot;</span>)</code></pre></div>
+<div id="save-as-r-objects" class="section level1">
+<h1>Save as R objects</h1>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(uhatG, h2G, sigma2G, <span class="dt">file =</span> <span class="st">&quot;day18.Rda&quot;</span>)
+<span class="kw">save</span>(G, <span class="dt">file =</span> <span class="st">&quot;G.Rda&quot;</span>)</code></pre></div>
 </div>
 </div>
 
@@ -251,7 +284,7 @@ uhatA2 &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span clas
 
 <div id="postamble" data-toggle="wy-nav-shift" class="status">
 <p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
-<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 6, 2018</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 8, 2018</p>
 </div>
 
 

@@ -158,8 +158,13 @@ hist(uhatA, col = "lightblue", main="Histogram", xlab="Estimated breeding values
 ### Exercise 2
 Create a scatter plot of EBV vs. observed values. Interpret the result. 
 ```{r, eval=FALSE, echo=FALSE}
-plot(uhatA, y, xlab="Estimated breeding values", ylab="Observed values")
-abline(lm(y ~ uhatA), lwd=3, col="red") 
+plot(y, uhatA, xlab="Estimated breeding values", ylab="Observed values")
+abline(lm(uhatA ~ y), lwd=3, col="red") 
+```
+
+Note that the estimate of heritability can also be obtained by regressing `uhatA` on `y`.
+```{r, eval=FALSE, echo=TRUE}
+summary(lm(uhatA ~ y))
 ```
 
 ### Exercise 3

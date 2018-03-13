@@ -1,0 +1,221 @@
+---
+title: "Mixed model equations"
+author: "Gota Morota"
+date: "March 13, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to estimate BLUE (best linear unbiased estimators) and BLUP (best linear unbiased predictors) **simultaneously**. 
+
+# Load R objects
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function `load()` to load the SNP matrix  ([W.Rda](http://morotalab.org/asci431-2018/day04/day04.html)), the numerator relationship matrix ([A.Rda](http://morotalab.org/asci431-2018/day06/day06.html)), the genomic relationship matrix ([G.Rda](http://morotalab.org/asci431-2018/day18/day18.html)) the results from pedigree-based BLUP ([day17.Rda](http://morotalab.org/asci431-2018/day17/day17.html)), and the results from genome-based BLUP ([day18.Rda](http://morotalab.org/asci431-2018/day18/day18.html)) we created in class.
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+
+load(file.choose()) # A.Rda
+dim(A)
+load(file.choose()) # G.Rda
+dim(G)
+
+load(file.choose()) # W.Rda
+dim(W)
+
+load(file.choose()) # day17.Rda
+load(file.choose()) # day18.Rda
+
+ls()
+```
+
+# Statistical model 
+The statistical model we will fit is given by 
+$$
+\begin{align*}
+\mathbf{y} &= \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e} \\
+\mathbf{u} & \sim MVN(0, \mathbf{K}\sigma^2_K) \\
+\mathbf{e} & \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+$$
+where $\mathbf{y}$ is the vector of birth weights,  $\mathbf{X}$ and $\mathbf{Z}$ are incident matrices for fixed and random effects, respectively, $\mathbf{b}$ is the vector of regression coefficients for fixed effects, $\mathbf{u}$ is the vector of regression coefficients for random genetic values, $\mathbf{K}$ is the relationship matrix either takes the $\mathbf{A}$ or the $\mathbf{G}$ matrix, and $\mathbf{e}$ is the vector of residuals. 
+
+Henderson (1949; 1950; 1959; 1963; 1975)  (e.g., [doi: 10.2307/2529430](https://www.jstor.org/stable/2529430)) maximized the joint distribution of phenotype $\mathbf{y}$ and random effect $\mathbf{u}$ to derive  mixed model equations (MME). 
+$$
+\begin{align}
+\begin{bmatrix}
+\mathbf{X'X} &  \mathbf{X'Z} \\
+\mathbf{Z'X} &  \mathbf{Z'Z}  + \mathbf{K}^{-1} \lambda
+\end{bmatrix}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{u}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X'y} \\
+\mathbf{Z'y}
+\end{bmatrix}
+\end{align}
+$$
+where $\lambda$ is the ratio of variance components $\frac{\sigma^2_e}{\sigma^2_A}$ or $\frac{\sigma^2_e}{\sigma^2_G}$. 
+
+Henderson later showed that $\hat{\mathbf{b}}$ from the above equation is a solution for generalized least square estimate and linear combination of $\hat{\mathbf{b}}$ and $\hat{\mathbf{u}}$ is BLUP. Thus, we can obtain BLUE of $\hat{\mathbf{b}}$ and BLUP of $\hat{\mathbf{u}}$ simultaneously by solveing MME. 
+$$
+\begin{align}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{u}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X'X} &  \mathbf{X'Z} \\
+\mathbf{Z'X} &  \mathbf{Z'Z}  + \mathbf{K}^{-1} \lambda
+\end{bmatrix}^{-1}
+\begin{bmatrix}
+\mathbf{X'y} \\
+\mathbf{Z'y}
+\end{bmatrix}
+\end{align}
+$$
+
+# Mixed model equations
+The function `computeMME()` accepts the vector of phenotypes ($\mathbf{y}$), the incidence matrix for fixed effects ($\mathbf{X}$), the incidence matrix for random effects ($\mathbf{Z}$), the numerator relationship matrix ($\mathbf{A}$), and the genomic relationship matrix ($\mathbf{G}$). The returned values are pedigree-based MME solutions and genome-based MME solutions.
+```{r, eval=FALSE}
+computeMME <- function(y=y, X=X, A=A, G=G){
+  
+  Z <- diag(nrow(G))
+  I <- diag(nrow(G))
+  G2 <- (1-0.001) * G + 0.001 * A
+
+  library(regress)
+  varcompA <- regress(y~ -1 + X, ~A)
+  lambdaA <- varcompA$sigma[2] / varcompA$sigma[1]
+  varcompG <- regress(y~ -1 + X, ~G2)
+  lambdaG <- varcompG$sigma[2] / varcompG$sigma[1]
+  
+  XtX <- crossprod(X)
+  XtZ <- crossprod(X, Z)
+  ZtX <- crossprod(Z, X)
+  ZtZA <- crossprod(Z) + solve(A) * lambdaA
+  ZtZG <- crossprod(Z) + solve(G2) * lambdaG
+  Xty <- crossprod(X, y)
+  Zty <- crossprod(Z, y) 
+  LHS1 <- cbind(XtX, XtZ)
+  LHS2A <- cbind(ZtX, ZtZA)
+  LHS2G <- cbind(ZtX, ZtZG)
+  LHSA <- rbind(LHS1, LHS2A)
+  LHSG <- rbind(LHS1, LHS2G)
+  RHS <- rbind(Xty, Zty)
+  
+  sol.A <- solve(LHSA) %*% RHS
+  sol.G <- solve(LHSG) %*% RHS
+  return(list(A=sol.A, G=sol.G))
+
+}
+
+y <- dat$BW_205d
+dat2 <- dat[, c("AgeDam", "Sex")]
+X <- model.matrix(~ dat2$AgeDam + dat2$Sex)
+sol.mme <- computeMME(y=y, X=X, A=A, G=G)
+```
+
+The vectors `sol.mme$A` and `sol.mme$G` include MME solutions derived from pedigree and genomics, respectively. 
+The length of vectors is equal to the sum of BLUE and BLUP solutions.
+```{r, eval=FALSE}
+length(sol.mme$A)
+length(sol.mme$G)
+```
+
+### Exercise 1
+Compare the estimates of fixed effects obtained from OLS (`fit$coefficients`), pedigree-based MME (`sol.mme$A`), and genome-based MME (`sol.mme$G`). Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+fit <- lm(BW_205d ~ AgeDam + factor(Sex), data=dat)
+fit$coefficients
+sol.mme$A[1:3]
+sol.mme$G[1:3]
+
+cor(data.frame(OLS=fit$coefficients, MME.A=sol.mme$A[1:3], MME.G=sol.mme$G[1:3]))
+```
+
+### Exercise 2
+Compare the estimates of EBV and GEBV obtained from PBLUP (`uhatA`), GBLUP (`uhatG`), pedigree-based MME (`sol.mme$A`), and genome-based MME (`sol.mme$G`). Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+head(c(uhatA)) # PBLUP
+head(c(uhatG)) # GBLUP
+head(sol.mme$A[4:length(sol.mme$A)]) # PBLUP from MME
+head(sol.mme$G[4:length(sol.mme$G)]) # # GBLUP from MME
+
+cor.blup <- cor(data.frame(PBLUP=uhatA, PBLUP.MEE=sol.mme$A[4:length(sol.mme$A)], GBLUP=uhatG, GBLUP.MME=sol.mme$G[4:length(sol.mme$G)]), method = "pearson")
+cor.blup
+
+cor.blup2 <- cor(data.frame(PBLUP=uhatA, PBLUP.MEE=sol.mme$A[4:length(sol.mme$A)], GBLUP=uhatG, GBLUP.MME=sol.mme$G[4:length(sol.mme$G)]), method = "spearman")
+cor.blup2
+
+# install.packages("corrplot")
+library(corrplot)
+corrplot(cor.blup)
+```
+
+How EBVs and GEBVs are distributed? The boxplot result below indicates that the $\mathbf{G}$ matrix shrinks estimates of breeding values more closer toward zero than those from the $\mathbf{A}$ matrix.
+```{r, eval=FALSE}
+boxplot(c(uhatA), sol.mme$A[4:length(sol.mme$A)], c(uhatG), sol.mme$G[4:length(sol.mme$G)], names = c("PBLUP", "PBLUP.MME", "GBLUP", "GBLUP.MME"),  ylab="Breeding values")
+```
+
+# The regress package 
+The [regress](https://cran.r-project.org/web/packages/regress/index.html) package also estimates BLUE and predicts BLUP. The `regress()` function estimates variance components and BLUE; the function `BLUP` predicts breeding values. 
+```{r, eval=FALSE}
+library(regress)
+varcompA <- regress(y~ -1 + X, ~A)
+varcompG <- regress(y~ -1 + X, ~G)
+
+
+regress.A <- BLUP(varcompA)
+regress.G <- BLUP(varcompG)
+```
+
+### Exercise 3
+Compare the estimates of fixed effects obtained from the following: OLS, pedigree-based MME, genome-based MME, and the regress package. Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+fit$coefficients # OLS
+
+sol.mme$A[1:3] # MME
+c(varcompA$beta) # regress
+
+sol.mme$G[1:3] # MME
+c(varcompG$beta) # regress
+
+cor(data.frame(OLS=fit$coefficients, MME.A=sol.mme$A[1:3], regress.A=c(varcompA$beta), MME.G=sol.mme$G[1:3], regress.G=c(varcompG$beta)), method = "pearson")
+
+cor(data.frame(OLS=fit$coefficients, MME.A=sol.mme$A[1:3], regress.A=c(varcompA$beta), MME.G=sol.mme$G[1:3], regress.G=c(varcompG$beta)), method = "spearman")
+```
+
+
+Here we add the results from the regress package into the boxplot in order to summarize the distributions of EBVs and GEBVs.
+```{r, eval=FALSE}
+boxplot(c(uhatA), sol.mme$A[4:length(sol.mme$A)], regress.A$Mean, c(uhatG), sol.mme$G[4:length(sol.mme$G)], regress.G$Mean, names = c("PBLUP", "PBLUP.MME", "regress.A", "GBLUP", "GBLUP.MME", "regress.G"),  ylab="Breeding values")
+```
+
+
+
+
+

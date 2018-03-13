@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+<meta name="date" content="2018-03-13" />
+
+<title>Mixed model equations</title>
+
+<script src="day19_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day19_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day19_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day19_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day19_files/navigation-1.1/tabsets.js"></script>
+<script src="day19_files/navigation-1.1/codefolding.js"></script>
+<link href="day19_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day19_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day19_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day19_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">Mixed model equations</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">Mixed model equations</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#load-r-objects">Load R objects</a></li>
+      <li><a href="#statistical-model">Statistical model</a></li>
+      <li><a href="#mixed-model-equations">Mixed model equations</a></li>
+      <li><a href="#the-regress-package">The regress package</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>We will learn how to estimate BLUE (best linear unbiased estimators) and BLUP (best linear unbiased predictors) <strong>simultaneously</strong>.</p>
+</div>
+<div id="load-r-objects" class="section level1">
+<h1>Load R objects</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function <code>load()</code> to load the SNP matrix (<a href="http://morotalab.org/asci431-2018/day04/day04.html">W.Rda</a>), the numerator relationship matrix (<a href="http://morotalab.org/asci431-2018/day06/day06.html">A.Rda</a>), the genomic relationship matrix (<a href="http://morotalab.org/asci431-2018/day18/day18.html">G.Rda</a>) the results from pedigree-based BLUP (<a href="http://morotalab.org/asci431-2018/day17/day17.html">day17.Rda</a>), and the results from genome-based BLUP (<a href="http://morotalab.org/asci431-2018/day18/day18.html">day18.Rda</a>) we created in class.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># A.Rda</span>
+<span class="kw">dim</span>(A)
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># G.Rda</span>
+<span class="kw">dim</span>(G)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># W.Rda</span>
+<span class="kw">dim</span>(W)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># day17.Rda</span>
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># day18.Rda</span>
+
+<span class="kw">ls</span>()</code></pre></div>
+</div>
+<div id="statistical-model" class="section level1">
+<h1>Statistical model</h1>
+<p>The statistical model we will fit is given by <span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e} \\
+\mathbf{u} &amp; \sim MVN(0, \mathbf{K}\sigma^2_K) \\
+\mathbf{e} &amp; \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+\]</span> where <span class="math inline">\(\mathbf{y}\)</span> is the vector of birth weights, <span class="math inline">\(\mathbf{X}\)</span> and <span class="math inline">\(\mathbf{Z}\)</span> are incident matrices for fixed and random effects, respectively, <span class="math inline">\(\mathbf{b}\)</span> is the vector of regression coefficients for fixed effects, <span class="math inline">\(\mathbf{u}\)</span> is the vector of regression coefficients for random genetic values, <span class="math inline">\(\mathbf{K}\)</span> is the relationship matrix either takes the <span class="math inline">\(\mathbf{A}\)</span> or the <span class="math inline">\(\mathbf{G}\)</span> matrix, and <span class="math inline">\(\mathbf{e}\)</span> is the vector of residuals.</p>
+<p>Henderson (1949; 1950; 1959; 1963; 1975) (e.g., <a href="https://www.jstor.org/stable/2529430">doi: 10.2307/2529430</a>) maximized the joint distribution of phenotype <span class="math inline">\(\mathbf{y}\)</span> and random effect <span class="math inline">\(\mathbf{u}\)</span> to derive mixed model equations (MME). <span class="math display">\[
+\begin{align}
+\begin{bmatrix}
+\mathbf{X&#39;X} &amp;  \mathbf{X&#39;Z} \\
+\mathbf{Z&#39;X} &amp;  \mathbf{Z&#39;Z}  + \mathbf{K}^{-1} \lambda
+\end{bmatrix}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{u}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X&#39;y} \\
+\mathbf{Z&#39;y}
+\end{bmatrix}
+\end{align}
+\]</span> where <span class="math inline">\(\lambda\)</span> is the ratio of variance components <span class="math inline">\(\frac{\sigma^2_e}{\sigma^2_A}\)</span> or <span class="math inline">\(\frac{\sigma^2_e}{\sigma^2_G}\)</span>.</p>
+<p>Henderson later showed that <span class="math inline">\(\hat{\mathbf{b}}\)</span> from the above equation is a solution for generalized least square estimate and linear combination of <span class="math inline">\(\hat{\mathbf{b}}\)</span> and <span class="math inline">\(\hat{\mathbf{u}}\)</span> is BLUP. Thus, we can obtain BLUE of <span class="math inline">\(\hat{\mathbf{b}}\)</span> and BLUP of <span class="math inline">\(\hat{\mathbf{u}}\)</span> simultaneously by solveing MME. <span class="math display">\[
+\begin{align}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{u}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X&#39;X} &amp;  \mathbf{X&#39;Z} \\
+\mathbf{Z&#39;X} &amp;  \mathbf{Z&#39;Z}  + \mathbf{K}^{-1} \lambda
+\end{bmatrix}^{-1}
+\begin{bmatrix}
+\mathbf{X&#39;y} \\
+\mathbf{Z&#39;y}
+\end{bmatrix}
+\end{align}
+\]</span></p>
+</div>
+<div id="mixed-model-equations" class="section level1">
+<h1>Mixed model equations</h1>
+<p>The function <code>computeMME()</code> accepts the vector of phenotypes (<span class="math inline">\(\mathbf{y}\)</span>), the incidence matrix for fixed effects (<span class="math inline">\(\mathbf{X}\)</span>), the incidence matrix for random effects (<span class="math inline">\(\mathbf{Z}\)</span>), the numerator relationship matrix (<span class="math inline">\(\mathbf{A}\)</span>), and the genomic relationship matrix (<span class="math inline">\(\mathbf{G}\)</span>). The returned values are pedigree-based MME solutions and genome-based MME solutions.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">computeMME &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">y =</span> y, <span class="dt">X =</span> X, <span class="dt">A =</span> A, <span class="dt">G =</span> G) {
+    
+    Z &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(G))
+    I &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(G))
+    G2 &lt;-<span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span><span class="fl">0.001</span>) <span class="op">*</span><span class="st"> </span>G <span class="op">+</span><span class="st"> </span><span class="fl">0.001</span> <span class="op">*</span><span class="st"> </span>A
+    
+    <span class="kw">library</span>(regress)
+    varcompA &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>A)
+    lambdaA &lt;-<span class="st"> </span>varcompA<span class="op">$</span>sigma[<span class="dv">2</span>]<span class="op">/</span>varcompA<span class="op">$</span>sigma[<span class="dv">1</span>]
+    varcompG &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>G2)
+    lambdaG &lt;-<span class="st"> </span>varcompG<span class="op">$</span>sigma[<span class="dv">2</span>]<span class="op">/</span>varcompG<span class="op">$</span>sigma[<span class="dv">1</span>]
+    
+    XtX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(X)
+    XtZ &lt;-<span class="st"> </span><span class="kw">crossprod</span>(X, Z)
+    ZtX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(Z, X)
+    ZtZA &lt;-<span class="st"> </span><span class="kw">crossprod</span>(Z) <span class="op">+</span><span class="st"> </span><span class="kw">solve</span>(A) <span class="op">*</span><span class="st"> </span>lambdaA
+    ZtZG &lt;-<span class="st"> </span><span class="kw">crossprod</span>(Z) <span class="op">+</span><span class="st"> </span><span class="kw">solve</span>(G2) <span class="op">*</span><span class="st"> </span>lambdaG
+    Xty &lt;-<span class="st"> </span><span class="kw">crossprod</span>(X, y)
+    Zty &lt;-<span class="st"> </span><span class="kw">crossprod</span>(Z, y)
+    LHS1 &lt;-<span class="st"> </span><span class="kw">cbind</span>(XtX, XtZ)
+    LHS2A &lt;-<span class="st"> </span><span class="kw">cbind</span>(ZtX, ZtZA)
+    LHS2G &lt;-<span class="st"> </span><span class="kw">cbind</span>(ZtX, ZtZG)
+    LHSA &lt;-<span class="st"> </span><span class="kw">rbind</span>(LHS1, LHS2A)
+    LHSG &lt;-<span class="st"> </span><span class="kw">rbind</span>(LHS1, LHS2G)
+    RHS &lt;-<span class="st"> </span><span class="kw">rbind</span>(Xty, Zty)
+    
+    sol.A &lt;-<span class="st"> </span><span class="kw">solve</span>(LHSA) <span class="op">%*%</span><span class="st"> </span>RHS
+    sol.G &lt;-<span class="st"> </span><span class="kw">solve</span>(LHSG) <span class="op">%*%</span><span class="st"> </span>RHS
+    <span class="kw">return</span>(<span class="kw">list</span>(<span class="dt">A =</span> sol.A, <span class="dt">G =</span> sol.G))
+    
+}
+
+y &lt;-<span class="st"> </span>dat<span class="op">$</span>BW_205d
+dat2 &lt;-<span class="st"> </span>dat[, <span class="kw">c</span>(<span class="st">&quot;AgeDam&quot;</span>, <span class="st">&quot;Sex&quot;</span>)]
+X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span>dat2<span class="op">$</span>AgeDam <span class="op">+</span><span class="st"> </span>dat2<span class="op">$</span>Sex)
+sol.mme &lt;-<span class="st"> </span><span class="kw">computeMME</span>(<span class="dt">y =</span> y, <span class="dt">X =</span> X, <span class="dt">A =</span> A, <span class="dt">G =</span> G)</code></pre></div>
+<p>The vectors <code>sol.mme$A</code> and <code>sol.mme$G</code> include MME solutions derived from pedigree and genomics, respectively. The length of vectors is equal to the sum of BLUE and BLUP solutions.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">length</span>(sol.mme<span class="op">$</span>A)
+<span class="kw">length</span>(sol.mme<span class="op">$</span>G)</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>Compare the estimates of fixed effects obtained from OLS (<code>fit$coefficients</code>), pedigree-based MME (<code>sol.mme$A</code>), and genome-based MME (<code>sol.mme$G</code>). Use the <code>cor()</code> function to calculate correlations.</p>
+</div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>Compare the estimates of EBV and GEBV obtained from PBLUP (<code>uhatA</code>), GBLUP (<code>uhatG</code>), pedigree-based MME (<code>sol.mme$A</code>), and genome-based MME (<code>sol.mme$G</code>). Use the <code>cor()</code> function to calculate correlations.</p>
+<p>How EBVs and GEBVs are distributed? The boxplot result below indicates that the <span class="math inline">\(\mathbf{G}\)</span> matrix shrinks estimates of breeding values more closer toward zero than those from the <span class="math inline">\(\mathbf{A}\)</span> matrix.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(<span class="kw">c</span>(uhatA), sol.mme<span class="op">$</span>A[<span class="dv">4</span><span class="op">:</span><span class="kw">length</span>(sol.mme<span class="op">$</span>A)], <span class="kw">c</span>(uhatG), sol.mme<span class="op">$</span>G[<span class="dv">4</span><span class="op">:</span><span class="kw">length</span>(sol.mme<span class="op">$</span>G)], 
+    <span class="dt">names =</span> <span class="kw">c</span>(<span class="st">&quot;PBLUP&quot;</span>, <span class="st">&quot;PBLUP.MME&quot;</span>, <span class="st">&quot;GBLUP&quot;</span>, <span class="st">&quot;GBLUP.MME&quot;</span>), <span class="dt">ylab =</span> <span class="st">&quot;Breeding values&quot;</span>)</code></pre></div>
+</div>
+</div>
+<div id="the-regress-package" class="section level1">
+<h1>The regress package</h1>
+<p>The <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package also estimates BLUE and predicts BLUP. The <code>regress()</code> function estimates variance components and BLUE; the function <code>BLUP</code> predicts breeding values.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(regress)
+varcompA &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>A)
+varcompG &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>G)
+
+
+regress.A &lt;-<span class="st"> </span><span class="kw">BLUP</span>(varcompA)
+regress.G &lt;-<span class="st"> </span><span class="kw">BLUP</span>(varcompG)</code></pre></div>
+<div id="exercise-3" class="section level3">
+<h3>Exercise 3</h3>
+<p>Compare the estimates of fixed effects obtained from the following: OLS, pedigree-based MME, genome-based MME, and the regress package. Use the <code>cor()</code> function to calculate correlations.</p>
+<p>Here we add the results from the regress package into the boxplot in order to summarize the distributions of EBVs and GEBVs.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">boxplot</span>(<span class="kw">c</span>(uhatA), sol.mme<span class="op">$</span>A[<span class="dv">4</span><span class="op">:</span><span class="kw">length</span>(sol.mme<span class="op">$</span>A)], regress.A<span class="op">$</span>Mean, <span class="kw">c</span>(uhatG), 
+    sol.mme<span class="op">$</span>G[<span class="dv">4</span><span class="op">:</span><span class="kw">length</span>(sol.mme<span class="op">$</span>G)], regress.G<span class="op">$</span>Mean, <span class="dt">names =</span> <span class="kw">c</span>(<span class="st">&quot;PBLUP&quot;</span>, <span class="st">&quot;PBLUP.MME&quot;</span>, 
+        <span class="st">&quot;regress.A&quot;</span>, <span class="st">&quot;GBLUP&quot;</span>, <span class="st">&quot;GBLUP.MME&quot;</span>, <span class="st">&quot;regress.G&quot;</span>), <span class="dt">ylab =</span> <span class="st">&quot;Breeding values&quot;</span>)</code></pre></div>
+</div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 13, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

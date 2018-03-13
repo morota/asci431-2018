@@ -226,6 +226,8 @@ uhatA2 &lt;-<span class="st"> </span>sigma2A <span class="op">*</span><span clas
 <div id="exercise-2" class="section level3">
 <h3>Exercise 2</h3>
 <p>Create a scatter plot of EBV vs. observed values. Interpret the result.</p>
+<p>Note that the estimate of heritability can also be obtained by regressing <code>uhatA</code> on <code>y</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">summary</span>(<span class="kw">lm</span>(uhatA <span class="op">~</span><span class="st"> </span>y))</code></pre></div>
 </div>
 <div id="exercise-3" class="section level3">
 <h3>Exercise 3</h3>

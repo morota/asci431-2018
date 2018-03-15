@@ -1,0 +1,321 @@
+---
+title: "SNP-BLUP"
+author: "Gota Morota"
+date: "March 15, 2018"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    self_contained: false
+---
+
+
+```{r knitr_init, echo=FALSE, cache=FALSE}
+library(knitr)
+library(rmdformats)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Overview  
+We will learn how to estimate BLUP of SNP marker effects (SNP-BLUP) and the equivalency between GBLUP and SNP-BLUP. 
+
+
+# Load R objects
+Use the function `read_excel` in the `readxl` package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function `load()` to load the SNP matrix  ([W.Rda](http://morotalab.org/asci431-2018/day04/day04.html)), the numerator relationship matrix ([A.Rda](http://morotalab.org/asci431-2018/day06/day06.html)), the genomic relationship matrix ([G.Rda](http://morotalab.org/asci431-2018/day18/day18.html)) the results from pedigree-based BLUP ([day17.Rda](http://morotalab.org/asci431-2018/day17/day17.html)), and the results from genome-based BLUP ([day18.Rda](http://morotalab.org/asci431-2018/day18/day18.html)) we created in class.
+```{r, eval=FALSE}
+library(readxl)
+dat <- read_excel(file.choose())
+dim(dat)
+head(dat)
+
+load(file.choose()) # A.Rda
+dim(A)
+load(file.choose()) # G.Rda
+dim(G)
+
+load(file.choose()) # W.Rda
+dim(W)
+
+load(file.choose()) # day17.Rda
+load(file.choose()) # day18.Rda
+
+ls()
+```
+
+
+
+
+
+
+# Statistical model 
+The statistical model we will fit is given by 
+$$
+\begin{align*}
+\mathbf{y} &= \mathbf{X}\mathbf{b} + \mathbf{W}\mathbf{a} + \mathbf{e} \\
+\mathbf{a} & \sim MVN(0, \mathbf{I}\sigma^2_a) \\
+\mathbf{e} & \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+$$
+where $\mathbf{y}$ is the vector of birth weights,  $\mathbf{X}$  is the incident matrix for fixed effects, $\mathbf{W}$ is the genotype matrix, $\mathbf{b}$ is the vector of regression coefficients for fixed effects, $\mathbf{a}$ is the vector of regression coefficients for random SNP effects, and $\mathbf{e}$ is the vector of residuals. 
+
+
+# BLUP of SNP marker effects
+Recall that BLUP of $\mathbf{a}$ is given by Henderson (1975) ([doi: 10.2307/2529430](https://www.jstor.org/stable/2529430))
+$$
+\begin{align*}
+BLUP(\mathbf{a}) &= E(\mathbf{a} | \mathbf{y}) \\
+&= Cov(\mathbf{a}, \mathbf{y}') Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
+&= \mathbf{I}\sigma^2_{a} \mathbf{W}'\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+\end{align*}
+$$
+
+where 
+$$
+\begin{align*}
+\mathbf{V} &= Var(\mathbf{y}) \\
+&= \mathbf{W}\mathbf{I}\sigma^2_a\mathbf{W}'  + \mathbf{I}\sigma^2_e
+\end{align*}
+$$
+
+We predict **SNP marker effects** $\hat{\mathbf{a}}$ in the following two steps. 
+
+* fit OLS to estimate fixed effects ($\hat{\mathbf{b}}$)
+* fit BLUP to obtain marker effects ($\hat{\mathbf{a}}$) condition on the estimated $\hat{\mathbf{b}}$
+
+Later we will discuss how to obtain $\hat{\mathbf{b}}$ and $\hat{\mathbf{a}}$ simultaneously using MME. 
+
+# Incidence matrix X, I, and phenotype y
+We will now contruct each component one by one. First we will create the incidence matrices `X` and $n$ by $n$ diagonal matrix `I`, and the vector of phenotypes `y`. 
+```{r, eval=FALSE}
+dat2 <- dat[, c("AgeDam", "Sex")]
+X <- model.matrix(~ dat2$AgeDam + dat2$Sex)
+Inxn <- diag(nrow(W))
+y <- dat$BW_205d
+```
+
+# Quality control of genotype matrix
+We will use a minor allele frequency threshold of 0.05 and create a new centered genotype matrix `W2`. 
+We will also create a $m$ by $m$ diagonal matrix.
+```{r, eval=FALSE}
+p <- colMeans(W)/2
+maf <- pmin(p, 1-p)
+index <- which(maf < 0.05)
+W2 <- W[, -index]
+W2 <- scale(W2, center = TRUE, scale=FALSE)
+p2 <- p[-index]
+Imxm <- diag(ncol(W2))
+
+```
+
+### Exercise 1
+How many SNPs are left after the quality control?
+```{r, eval=FALSE, echo=FALSE}
+dim(W2)
+```
+
+# Variance components estimation using the regress package
+The `regress()` function in the [regress](https://cran.r-project.org/web/packages/regress/index.html) package fits a liner mixed model and estimates variance components ($\sigma^2_a$ and $\sigma^2_e$) through a restricted maximum likelihood (REML). Note that the variance-covariance structure of $\mathbf{a}$ (`argument = varcov`) is given by $\mathbf{W}\mathbf{W'}$ because $\mathbf{a} \sim MVN(0, \mathbf{I}\sigma^2_a)$, hence $\mathbf{Wa} \sim MVN(0, \mathbf{W}\mathbf{W}' \sigma^2_a)$. 
+```{r, eval=FALSE}
+library(regress)
+WtW <- W2 %*% t(W2)
+varcompSNP <- regress(y~ -1 + X, ~ WtW)
+
+sigma2a <- varcompSNP$sigma[1] # additive SNP variance -> sigma^2_a
+sigma2e <- varcompSNP$sigma[2] # residual variance -> sigma^2_e
+
+lambda <- sigma2e / sigma2a
+```
+
+# Inverse of V
+Here we compute the inverse of $V$ matrix. We will use 1) the multiplication operator `%*%` and 2) the function `solve()` to obtain the inverse of matrix. 
+```{r, eval=FALSE}
+V <- W2 %*% Imxm %*% t(W2) * sigma2a + Inxn * sigma2e
+dim(V)
+Vinv <- solve(V) 
+dim(Vinv)
+```
+
+
+# Ordinary least squares
+We will use the `lm()` function to fit OLS and estimate fixed effect coefficients. This function offers an intuitive formula syntax. The `summary()` function summarizes a model fit. 
+```{r, eval=FALSE}
+fit <- lm(BW_205d ~ AgeDam + factor(Sex), data=dat)
+summary(fit)
+residuals(fit)
+```
+
+# SNP effects
+Now we compute the BLUP of SNP effects ($\hat{\mathbf{a}}$). 
+```{r, eval=FALSE}
+ahat <- sigma2a * Imxm %*%  t(W2) %*% Vinv %*%  (matrix(y) - matrix(predict(fit)))
+ahat2 <- sigma2a * Imxm %*%  t(W2) %*% Vinv %*%  (matrix(y) - matrix(X%*% fit$coefficients)) # alternative
+table(ahat == ahat2)
+head(ahat)
+tail(ahat)
+```
+
+### Exercise 2
+Which SNP has the largest effect? What is the name of SNP?
+```{r, eval=FALSE, echo=FALSE}
+index <- which.max(ahat)
+index
+ahat[index]
+colnames(W2)[index]
+```
+
+# Mixed model equations
+The corresponding MME is givin by simply replacing  $\mathbf{Z}$ and $\mathbf{K}$ in the relationship-based MME with $\mathbf{W}$ and $I_{m \times m}$, respectively.
+$$
+\begin{align}
+\begin{bmatrix}
+\mathbf{X'X} &  \mathbf{X'W} \\
+\mathbf{W'X} &  \mathbf{W'W}  + \mathbf{I}^{-1} \lambda
+\end{bmatrix}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{a}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X'y} \\
+\mathbf{W'y}
+\end{bmatrix}.
+\end{align}
+$$
+
+where $\lambda$ is the ratio of variance components $\frac{\sigma^2_e}{\sigma^2_a}$.  
+
+Henderson later showed that $\hat{\mathbf{b}}$ from the above equation is a solution for generalized least square estimate and linear combination of $\hat{\mathbf{b}}$ and $\hat{\mathbf{a}}$ is BLUP. Thus, we can obtain BLUE of $\hat{\mathbf{b}}$ and BLUP of $\hat{\mathbf{a}}$ simultaneously by solveing MME. 
+$$
+\begin{align}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{a}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X'X} &  \mathbf{X'W} \\
+\mathbf{W'X} &  \mathbf{W'W}  + \mathbf{I}^{-1} \lambda
+\end{bmatrix}^{-1}
+\begin{bmatrix}
+\mathbf{X'y} \\
+\mathbf{W'y}
+\end{bmatrix}
+\end{align}
+$$
+
+
+
+# The rrBLUP package 
+The `mixed.solve()` function in the [rrBLUP](https://cran.r-project.org/web/packages/rrBLUP/index.html) package estimates fixed effects and variance components it and predicts BLUP of SNP effects. 
+```{r, eval=FALSE}
+# install.packages("rrBLUP")
+library(rrBLUP)
+rr <- mixed.solve(y, X=X, Z=W2)
+names(rr)
+
+rr$beta # fixed effect
+
+rr$Vu # additive SNP variance 
+rr$Ve # residual variance 
+
+head(rr$u) # BLUP of SNP marker effects 
+tail(rr$u)
+```
+
+### Exercise 3
+Compare the estimates of fixed effects obtained from the following: the regress package and the rrBLUP package. Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+varcompSNP$beta
+
+rr$beta
+
+cor(data.frame(varcomp=varcompSNP$beta, rrBLUP=rr$beta))
+```
+
+### Exercise 4
+Compare the estimates of variance components ($\sigma^2_a$ and $\sigma^2_e$) obtained from the following: the regress package and the rrBLUP package.
+```{r, eval=FALSE, echo=FALSE}
+# additive SNP variance
+varcompSNP$sigma[1]
+rr$Vu
+
+# residual variance
+varcompSNP$sigma[2]
+rr$Ve
+```
+
+### Exercise 5
+Compare the estimates of BLUP of SNP marker effects obtained from the following: the SNP-BLUP (`ahat`) and the rrBLUP package. Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+head(c(ahat))
+head(c(rr$u))
+
+tail(c(ahat))
+tail(rr$u)
+
+cor(data.frame(SNP.BLUP=c(ahat), rrBLUP=rr$u))
+```
+
+# Relationship between GBLUP and SNP-BLUP
+Recall that the statistical model of GBLUP is 
+$$
+\begin{align*}
+\mathbf{y} &= \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e} \\
+\mathbf{u} & \sim MVN(0, \mathbf{G}\sigma^2_G) \\
+\mathbf{e} & \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+$$
+The SNP-BLUP model is given by
+$$
+\begin{align*}
+\mathbf{y} &= \mathbf{X}\mathbf{b} + \mathbf{W}\mathbf{a} + \mathbf{e} \\
+\mathbf{a} & \sim MVN(0, \mathbf{I}\sigma^2_a) \\
+\mathbf{e} & \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+$$
+
+The difference is that we approximate the true genetic signal $\mathbf{g}$ with $\mathbf{Zu}$ in GBLUP ($\mathbf{g = Zu}$), whereas we approximate the genetic signal with $\mathbf{Wa}$ in SNP-BLUP ($\mathbf{g = Wa}$). 
+This suggests that the vector of estimated genomic breeding values $\hat{\mathbf{u}}$ is equivalent to the genotype matrix multiplied by the BLUP of SNP marker effects $\mathbf{W}\hat{\mathbf{a}}$. 
+$$
+\hat{\mathbf{u}} = \mathbf{W}\hat{\mathbf{a}}
+$$
+
+### Exercise 6
+Compare estimated genomic breeding values obtained from the following: the GBLUP (`uhatG`),  the SNP-BLUP (`ahat`), and the rrBLUP package. Use the `cor()` function to calculate correlations. 
+```{r, eval=FALSE, echo=FALSE}
+uhat.GBLUP <- W2 %*% ahat
+uhat.rrBLUP <- W2 %*% rr$u
+
+head(c(uhatG))
+head(c(uhat.GBLUP))
+head(c(uhat.rrBLUP))
+
+tail(c(uhatG))
+tail(c(uhat.GBLUP))
+tail(c(uhat.rrBLUP))
+
+cor(data.frame(uhat.GBLUP=c(uhat.GBLUP), uhat.rrBLUP=c(uhat.rrBLUP), uhatG=c(uhatG)))
+```
+
+# The regress package  
+The `regress()` function in the [regress](https://cran.r-project.org/web/packages/regress/index.html) package can also predict genomic breeding values.
+```{r, eval=FALSE}
+regress.SNP <- BLUP(varcompSNP)
+
+names(regress.SNP)
+
+# GEBV
+head(regress.SNP$Mean) # regress
+head(c(W2 %*% ahat)) # SNP-BLUP
+head(c(W2 %*% rr$u)) # rrBLUP
+head(c(uhatG)) # GBLUP
+```
+

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Gota Morota" />
+
+<meta name="date" content="2018-03-15" />
+
+<title>SNP-BLUP</title>
+
+<script src="day20_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="day20_files/bootstrap-3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+<script src="day20_files/bootstrap-3.3.6/js/bootstrap.min.js"></script>
+<script src="day20_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<script src="day20_files/navigation-1.1/tabsets.js"></script>
+<script src="day20_files/navigation-1.1/codefolding.js"></script>
+<link href="day20_files/magnific-popup-1.1.0/magnific-popup.css" rel="stylesheet" />
+<script src="day20_files/magnific-popup-1.1.0/jquery.magnific-popup.min.js"></script>
+<link href="day20_files/readthedown-0.1/readthedown.css" rel="stylesheet" />
+<script src="day20_files/readthedown-0.1/readthedown.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #ffffff; color: #1f1c1b; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; background-color: #ffffff; color: #a0a0a0; border-right: 1px solid #a0a0a0; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #1f1c1b; background-color: #ffffff; }
+code > span.kw { color: #1f1c1b; font-weight: bold; } /* Keyword */
+code > span.dt { color: #0057ae; } /* DataType */
+code > span.dv { color: #b08000; } /* DecVal */
+code > span.bn { color: #b08000; } /* BaseN */
+code > span.fl { color: #b08000; } /* Float */
+code > span.cn { color: #aa5500; } /* Constant */
+code > span.ch { color: #924c9d; } /* Char */
+code > span.sc { color: #3daee9; } /* SpecialChar */
+code > span.st { color: #bf0303; } /* String */
+code > span.vs { color: #bf0303; } /* VerbatimString */
+code > span.ss { color: #ff5500; } /* SpecialString */
+code > span.im { color: #ff5500; } /* Import */
+code > span.co { color: #898887; } /* Comment */
+code > span.do { color: #607880; } /* Documentation */
+code > span.an { color: #ca60ca; } /* Annotation */
+code > span.cv { color: #0095ff; } /* CommentVar */
+code > span.ot { color: #006e28; } /* Other */
+code > span.fu { color: #644a9b; } /* Function */
+code > span.va { color: #0057ae; } /* Variable */
+code > span.cf { color: #1f1c1b; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #1f1c1b; } /* Operator */
+code > span.bu { color: #644a9b; font-weight: bold; } /* BuiltIn */
+code > span.ex { color: #0095ff; font-weight: bold; } /* Extension */
+code > span.pp { color: #006e28; } /* Preprocessor */
+code > span.at { color: #0057ae; } /* Attribute */
+code > span.re { color: #0057ae; } /* RegionMarker */
+code > span.in { color: #b08000; } /* Information */
+code > span.wa { color: #bf0303; } /* Warning */
+code > span.al { color: #bf0303; font-weight: bold; } /* Alert */
+code > span.er { color: #bf0303; text-decoration: underline; } /* Error */
+code > span. { color: #1f1c1b; } /* Normal */
+</style>
+
+
+</head>
+
+<body>
+
+
+<div id="content" data-toggle="wy-nav-shift">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+<nav id="nav-top" role="navigation" aria-label="top navigation">
+    <a role="button" href="#" data-toggle="wy-nav-top"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+</nav>
+
+
+<div id="header">
+<h1 class="title">SNP-BLUP</h1>
+</div>
+
+
+<div id="table-of-contents">
+    <h2><a href="#content">SNP-BLUP</a></h2>
+    <div id="text-table-of-contents">
+      <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#load-r-objects">Load R objects</a></li>
+      <li><a href="#statistical-model">Statistical model</a></li>
+      <li><a href="#blup-of-snp-marker-effects">BLUP of SNP marker effects</a></li>
+      <li><a href="#incidence-matrix-x-i-and-phenotype-y">Incidence matrix X, I, and phenotype y</a></li>
+      <li><a href="#quality-control-of-genotype-matrix">Quality control of genotype matrix</a></li>
+      <li><a href="#variance-components-estimation-using-the-regress-package">Variance components estimation using the regress package</a></li>
+      <li><a href="#inverse-of-v">Inverse of V</a></li>
+      <li><a href="#ordinary-least-squares">Ordinary least squares</a></li>
+      <li><a href="#snp-effects">SNP effects</a></li>
+      <li><a href="#mixed-model-equations">Mixed model equations</a></li>
+      <li><a href="#the-rrblup-package">The rrBLUP package</a></li>
+      <li><a href="#relationship-between-gblup-and-snp-blup">Relationship between GBLUP and SNP-BLUP</a></li>
+      <li><a href="#the-regress-package">The regress package</a></li>
+      </ul>
+    </div>
+</div>
+
+<div id="main">
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>We will learn how to estimate BLUP of SNP marker effects (SNP-BLUP) and the equivalency between GBLUP and SNP-BLUP.</p>
+</div>
+<div id="load-r-objects" class="section level1">
+<h1>Load R objects</h1>
+<p>Use the function <code>read_excel</code> in the <code>readxl</code> package to read the pedigree file (Simdata.xlsx) in a data frame format. Use the function <code>load()</code> to load the SNP matrix (<a href="http://morotalab.org/asci431-2018/day04/day04.html">W.Rda</a>), the numerator relationship matrix (<a href="http://morotalab.org/asci431-2018/day06/day06.html">A.Rda</a>), the genomic relationship matrix (<a href="http://morotalab.org/asci431-2018/day18/day18.html">G.Rda</a>) the results from pedigree-based BLUP (<a href="http://morotalab.org/asci431-2018/day17/day17.html">day17.Rda</a>), and the results from genome-based BLUP (<a href="http://morotalab.org/asci431-2018/day18/day18.html">day18.Rda</a>) we created in class.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(readxl)
+dat &lt;-<span class="st"> </span><span class="kw">read_excel</span>(<span class="kw">file.choose</span>())
+<span class="kw">dim</span>(dat)
+<span class="kw">head</span>(dat)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># A.Rda</span>
+<span class="kw">dim</span>(A)
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># G.Rda</span>
+<span class="kw">dim</span>(G)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># W.Rda</span>
+<span class="kw">dim</span>(W)
+
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># day17.Rda</span>
+<span class="kw">load</span>(<span class="kw">file.choose</span>())  <span class="co"># day18.Rda</span>
+
+<span class="kw">ls</span>()</code></pre></div>
+</div>
+<div id="statistical-model" class="section level1">
+<h1>Statistical model</h1>
+<p>The statistical model we will fit is given by <span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= \mathbf{X}\mathbf{b} + \mathbf{W}\mathbf{a} + \mathbf{e} \\
+\mathbf{a} &amp; \sim MVN(0, \mathbf{I}\sigma^2_a) \\
+\mathbf{e} &amp; \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+\]</span> where <span class="math inline">\(\mathbf{y}\)</span> is the vector of birth weights, <span class="math inline">\(\mathbf{X}\)</span> is the incident matrix for fixed effects, <span class="math inline">\(\mathbf{W}\)</span> is the genotype matrix, <span class="math inline">\(\mathbf{b}\)</span> is the vector of regression coefficients for fixed effects, <span class="math inline">\(\mathbf{a}\)</span> is the vector of regression coefficients for random SNP effects, and <span class="math inline">\(\mathbf{e}\)</span> is the vector of residuals.</p>
+</div>
+<div id="blup-of-snp-marker-effects" class="section level1">
+<h1>BLUP of SNP marker effects</h1>
+<p>Recall that BLUP of <span class="math inline">\(\mathbf{a}\)</span> is given by Henderson (1975) (<a href="https://www.jstor.org/stable/2529430">doi: 10.2307/2529430</a>) <span class="math display">\[
+\begin{align*}
+BLUP(\mathbf{a}) &amp;= E(\mathbf{a} | \mathbf{y}) \\
+&amp;= Cov(\mathbf{a}, \mathbf{y}&#39;) Var(\mathbf{y})^{-1} [\mathbf{y} - E(\mathbf{y})]   \\
+&amp;= \mathbf{I}\sigma^2_{a} \mathbf{W}&#39;\mathbf{V}^{-1}(\mathbf{y} - \mathbf{X}\hat{\mathbf{b}}),
+\end{align*}
+\]</span></p>
+<p>where <span class="math display">\[
+\begin{align*}
+\mathbf{V} &amp;= Var(\mathbf{y}) \\
+&amp;= \mathbf{W}\mathbf{I}\sigma^2_a\mathbf{W}&#39;  + \mathbf{I}\sigma^2_e
+\end{align*}
+\]</span></p>
+<p>We predict <strong>SNP marker effects</strong> <span class="math inline">\(\hat{\mathbf{a}}\)</span> in the following two steps.</p>
+<ul>
+<li>fit OLS to estimate fixed effects (<span class="math inline">\(\hat{\mathbf{b}}\)</span>)</li>
+<li>fit BLUP to obtain marker effects (<span class="math inline">\(\hat{\mathbf{a}}\)</span>) condition on the estimated <span class="math inline">\(\hat{\mathbf{b}}\)</span></li>
+</ul>
+<p>Later we will discuss how to obtain <span class="math inline">\(\hat{\mathbf{b}}\)</span> and <span class="math inline">\(\hat{\mathbf{a}}\)</span> simultaneously using MME.</p>
+</div>
+<div id="incidence-matrix-x-i-and-phenotype-y" class="section level1">
+<h1>Incidence matrix X, I, and phenotype y</h1>
+<p>We will now contruct each component one by one. First we will create the incidence matrices <code>X</code> and <span class="math inline">\(n\)</span> by <span class="math inline">\(n\)</span> diagonal matrix <code>I</code>, and the vector of phenotypes <code>y</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dat2 &lt;-<span class="st"> </span>dat[, <span class="kw">c</span>(<span class="st">&quot;AgeDam&quot;</span>, <span class="st">&quot;Sex&quot;</span>)]
+X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span>dat2<span class="op">$</span>AgeDam <span class="op">+</span><span class="st"> </span>dat2<span class="op">$</span>Sex)
+Inxn &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">nrow</span>(W))
+y &lt;-<span class="st"> </span>dat<span class="op">$</span>BW_205d</code></pre></div>
+</div>
+<div id="quality-control-of-genotype-matrix" class="section level1">
+<h1>Quality control of genotype matrix</h1>
+<p>We will use a minor allele frequency threshold of 0.05 and create a new centered genotype matrix <code>W2</code>. We will also create a <span class="math inline">\(m\)</span> by <span class="math inline">\(m\)</span> diagonal matrix.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw">colMeans</span>(W)<span class="op">/</span><span class="dv">2</span>
+maf &lt;-<span class="st"> </span><span class="kw">pmin</span>(p, <span class="dv">1</span> <span class="op">-</span><span class="st"> </span>p)
+index &lt;-<span class="st"> </span><span class="kw">which</span>(maf <span class="op">&lt;</span><span class="st"> </span><span class="fl">0.05</span>)
+W2 &lt;-<span class="st"> </span>W[, <span class="op">-</span>index]
+W2 &lt;-<span class="st"> </span><span class="kw">scale</span>(W2, <span class="dt">center =</span> <span class="ot">TRUE</span>, <span class="dt">scale =</span> <span class="ot">FALSE</span>)
+p2 &lt;-<span class="st"> </span>p[<span class="op">-</span>index]
+Imxm &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="kw">ncol</span>(W2))</code></pre></div>
+<div id="exercise-1" class="section level3">
+<h3>Exercise 1</h3>
+<p>How many SNPs are left after the quality control?</p>
+</div>
+</div>
+<div id="variance-components-estimation-using-the-regress-package" class="section level1">
+<h1>Variance components estimation using the regress package</h1>
+<p>The <code>regress()</code> function in the <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package fits a liner mixed model and estimates variance components (<span class="math inline">\(\sigma^2_a\)</span> and <span class="math inline">\(\sigma^2_e\)</span>) through a restricted maximum likelihood (REML). Note that the variance-covariance structure of <span class="math inline">\(\mathbf{a}\)</span> (<code>argument = varcov</code>) is given by <span class="math inline">\(\mathbf{W}\mathbf{W&#39;}\)</span> because <span class="math inline">\(\mathbf{a} \sim MVN(0, \mathbf{I}\sigma^2_a)\)</span>, hence <span class="math inline">\(\mathbf{Wa} \sim MVN(0, \mathbf{W}\mathbf{W}&#39; \sigma^2_a)\)</span>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(regress)
+WtW &lt;-<span class="st"> </span>W2 <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(W2)
+varcompSNP &lt;-<span class="st"> </span><span class="kw">regress</span>(y <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>X, <span class="op">~</span>WtW)
+
+sigma2a &lt;-<span class="st"> </span>varcompSNP<span class="op">$</span>sigma[<span class="dv">1</span>]  <span class="co"># additive SNP variance -&gt; sigma^2_a</span>
+sigma2e &lt;-<span class="st"> </span>varcompSNP<span class="op">$</span>sigma[<span class="dv">2</span>]  <span class="co"># residual variance -&gt; sigma^2_e</span>
+
+lambda &lt;-<span class="st"> </span>sigma2e<span class="op">/</span>sigma2a</code></pre></div>
+</div>
+<div id="inverse-of-v" class="section level1">
+<h1>Inverse of V</h1>
+<p>Here we compute the inverse of <span class="math inline">\(V\)</span> matrix. We will use 1) the multiplication operator <code>%*%</code> and 2) the function <code>solve()</code> to obtain the inverse of matrix.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">V &lt;-<span class="st"> </span>W2 <span class="op">%*%</span><span class="st"> </span>Imxm <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(W2) <span class="op">*</span><span class="st"> </span>sigma2a <span class="op">+</span><span class="st"> </span>Inxn <span class="op">*</span><span class="st"> </span>sigma2e
+<span class="kw">dim</span>(V)
+Vinv &lt;-<span class="st"> </span><span class="kw">solve</span>(V)
+<span class="kw">dim</span>(Vinv)</code></pre></div>
+</div>
+<div id="ordinary-least-squares" class="section level1">
+<h1>Ordinary least squares</h1>
+<p>We will use the <code>lm()</code> function to fit OLS and estimate fixed effect coefficients. This function offers an intuitive formula syntax. The <code>summary()</code> function summarizes a model fit.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fit &lt;-<span class="st"> </span><span class="kw">lm</span>(BW_205d <span class="op">~</span><span class="st"> </span>AgeDam <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(Sex), <span class="dt">data =</span> dat)
+<span class="kw">summary</span>(fit)
+<span class="kw">residuals</span>(fit)</code></pre></div>
+</div>
+<div id="snp-effects" class="section level1">
+<h1>SNP effects</h1>
+<p>Now we compute the BLUP of SNP effects (<span class="math inline">\(\hat{\mathbf{a}}\)</span>).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ahat &lt;-<span class="st"> </span>sigma2a <span class="op">*</span><span class="st"> </span>Imxm <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(W2) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(<span class="kw">predict</span>(fit)))
+ahat2 &lt;-<span class="st"> </span>sigma2a <span class="op">*</span><span class="st"> </span>Imxm <span class="op">%*%</span><span class="st"> </span><span class="kw">t</span>(W2) <span class="op">%*%</span><span class="st"> </span>Vinv <span class="op">%*%</span><span class="st"> </span>(<span class="kw">matrix</span>(y) <span class="op">-</span><span class="st"> </span><span class="kw">matrix</span>(X <span class="op">%*%</span><span class="st"> </span>fit<span class="op">$</span>coefficients))  <span class="co"># alternative</span>
+<span class="kw">table</span>(ahat <span class="op">==</span><span class="st"> </span>ahat2)
+<span class="kw">head</span>(ahat)
+<span class="kw">tail</span>(ahat)</code></pre></div>
+<div id="exercise-2" class="section level3">
+<h3>Exercise 2</h3>
+<p>Which SNP has the largest effect? What is the name of SNP?</p>
+</div>
+</div>
+<div id="mixed-model-equations" class="section level1">
+<h1>Mixed model equations</h1>
+<p>The corresponding MME is givin by simply replacing <span class="math inline">\(\mathbf{Z}\)</span> and <span class="math inline">\(\mathbf{K}\)</span> in the relationship-based MME with <span class="math inline">\(\mathbf{W}\)</span> and <span class="math inline">\(I_{m \times m}\)</span>, respectively. <span class="math display">\[
+\begin{align}
+\begin{bmatrix}
+\mathbf{X&#39;X} &amp;  \mathbf{X&#39;W} \\
+\mathbf{W&#39;X} &amp;  \mathbf{W&#39;W}  + \mathbf{I}^{-1} \lambda
+\end{bmatrix}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{a}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X&#39;y} \\
+\mathbf{W&#39;y}
+\end{bmatrix}.
+\end{align}
+\]</span></p>
+<p>where <span class="math inline">\(\lambda\)</span> is the ratio of variance components <span class="math inline">\(\frac{\sigma^2_e}{\sigma^2_a}\)</span>.</p>
+<p>Henderson later showed that <span class="math inline">\(\hat{\mathbf{b}}\)</span> from the above equation is a solution for generalized least square estimate and linear combination of <span class="math inline">\(\hat{\mathbf{b}}\)</span> and <span class="math inline">\(\hat{\mathbf{a}}\)</span> is BLUP. Thus, we can obtain BLUE of <span class="math inline">\(\hat{\mathbf{b}}\)</span> and BLUP of <span class="math inline">\(\hat{\mathbf{a}}\)</span> simultaneously by solveing MME. <span class="math display">\[
+\begin{align}
+\begin{bmatrix}
+\hat{\mathbf{b}} \\
+\hat{\mathbf{a}} 
+\end{bmatrix} =
+\begin{bmatrix}
+\mathbf{X&#39;X} &amp;  \mathbf{X&#39;W} \\
+\mathbf{W&#39;X} &amp;  \mathbf{W&#39;W}  + \mathbf{I}^{-1} \lambda
+\end{bmatrix}^{-1}
+\begin{bmatrix}
+\mathbf{X&#39;y} \\
+\mathbf{W&#39;y}
+\end{bmatrix}
+\end{align}
+\]</span></p>
+</div>
+<div id="the-rrblup-package" class="section level1">
+<h1>The rrBLUP package</h1>
+<p>The <code>mixed.solve()</code> function in the <a href="https://cran.r-project.org/web/packages/rrBLUP/index.html">rrBLUP</a> package estimates fixed effects and variance components it and predicts BLUP of SNP effects.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># install.packages(&#39;rrBLUP&#39;)</span>
+<span class="kw">library</span>(rrBLUP)
+rr &lt;-<span class="st"> </span><span class="kw">mixed.solve</span>(y, <span class="dt">X =</span> X, <span class="dt">Z =</span> W2)
+<span class="kw">names</span>(rr)
+
+rr<span class="op">$</span>beta  <span class="co"># fixed effect</span>
+
+rr<span class="op">$</span>Vu  <span class="co"># additive SNP variance </span>
+rr<span class="op">$</span>Ve  <span class="co"># residual variance </span>
+
+<span class="kw">head</span>(rr<span class="op">$</span>u)  <span class="co"># BLUP of SNP marker effects </span>
+<span class="kw">tail</span>(rr<span class="op">$</span>u)</code></pre></div>
+<div id="exercise-3" class="section level3">
+<h3>Exercise 3</h3>
+<p>Compare the estimates of fixed effects obtained from the following: the regress package and the rrBLUP package. Use the <code>cor()</code> function to calculate correlations.</p>
+</div>
+<div id="exercise-4" class="section level3">
+<h3>Exercise 4</h3>
+<p>Compare the estimates of variance components (<span class="math inline">\(\sigma^2_a\)</span> and <span class="math inline">\(\sigma^2_e\)</span>) obtained from the following: the regress package and the rrBLUP package.</p>
+</div>
+<div id="exercise-5" class="section level3">
+<h3>Exercise 5</h3>
+<p>Compare the estimates of BLUP of SNP marker effects obtained from the following: the SNP-BLUP (<code>ahat</code>) and the rrBLUP package. Use the <code>cor()</code> function to calculate correlations.</p>
+</div>
+</div>
+<div id="relationship-between-gblup-and-snp-blup" class="section level1">
+<h1>Relationship between GBLUP and SNP-BLUP</h1>
+<p>Recall that the statistical model of GBLUP is <span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= \mathbf{X}\mathbf{b} + \mathbf{Z}\mathbf{u} + \mathbf{e} \\
+\mathbf{u} &amp; \sim MVN(0, \mathbf{G}\sigma^2_G) \\
+\mathbf{e} &amp; \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+\]</span> The SNP-BLUP model is given by <span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= \mathbf{X}\mathbf{b} + \mathbf{W}\mathbf{a} + \mathbf{e} \\
+\mathbf{a} &amp; \sim MVN(0, \mathbf{I}\sigma^2_a) \\
+\mathbf{e} &amp; \sim MVN(0, \mathbf{I}\sigma^2_e) \\
+\end{align*}
+\]</span></p>
+<p>The difference is that we approximate the true genetic signal <span class="math inline">\(\mathbf{g}\)</span> with <span class="math inline">\(\mathbf{Zu}\)</span> in GBLUP (<span class="math inline">\(\mathbf{g = Zu}\)</span>), whereas we approximate the genetic signal with <span class="math inline">\(\mathbf{Wa}\)</span> in SNP-BLUP (<span class="math inline">\(\mathbf{g = Wa}\)</span>). This suggests that the vector of estimated genomic breeding values <span class="math inline">\(\hat{\mathbf{u}}\)</span> is equivalent to the genotype matrix multiplied by the BLUP of SNP marker effects <span class="math inline">\(\mathbf{W}\hat{\mathbf{a}}\)</span>. <span class="math display">\[
+\hat{\mathbf{u}} = \mathbf{W}\hat{\mathbf{a}}
+\]</span></p>
+<div id="exercise-6" class="section level3">
+<h3>Exercise 6</h3>
+<p>Compare estimated genomic breeding values obtained from the following: the GBLUP (<code>uhatG</code>), the SNP-BLUP (<code>ahat</code>), and the rrBLUP package. Use the <code>cor()</code> function to calculate correlations.</p>
+</div>
+</div>
+<div id="the-regress-package" class="section level1">
+<h1>The regress package</h1>
+<p>The <code>regress()</code> function in the <a href="https://cran.r-project.org/web/packages/regress/index.html">regress</a> package can also predict genomic breeding values.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">regress.SNP &lt;-<span class="st"> </span><span class="kw">BLUP</span>(varcompSNP)
+
+<span class="kw">names</span>(regress.SNP)
+
+<span class="co"># GEBV</span>
+<span class="kw">head</span>(regress.SNP<span class="op">$</span>Mean)  <span class="co"># regress</span>
+<span class="kw">head</span>(<span class="kw">c</span>(W2 <span class="op">%*%</span><span class="st"> </span>ahat))  <span class="co"># SNP-BLUP</span>
+<span class="kw">head</span>(<span class="kw">c</span>(W2 <span class="op">%*%</span><span class="st"> </span>rr<span class="op">$</span>u))  <span class="co"># rrBLUP</span>
+<span class="kw">head</span>(<span class="kw">c</span>(uhatG))  <span class="co"># GBLUP</span></code></pre></div>
+</div>
+</div>
+
+
+</div>
+
+<div id="postamble" data-toggle="wy-nav-shift" class="status">
+<p class="author"><span class="glyphicon glyphicon-user"></span> Gota Morota</p>
+<p class="date"><span class="glyphicon glyphicon-calendar"></span> March 15, 2018</p>
+</div>
+
+
+<script>
+$(document).ready(function () {
+ 	  });
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

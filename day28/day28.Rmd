@@ -54,7 +54,7 @@ shinyApp(ui = ui, server = server)
 # Control widgets 
 <img src="widgets.png" width=700 height=470>
 .left[[RStudio](https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/)]
-.right[[Example](http://morotalab.org/asci431-2018/day28/ex.R)]
+.right[[Example](https://github.com/morota/asci431-2018/blob/gh-pages/day28/ex.R)]
 
 
 
